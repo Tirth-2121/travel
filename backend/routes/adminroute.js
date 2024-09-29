@@ -1,13 +1,9 @@
 import express from "express";
 import {
-	createDestination,
-	getDestination,
-	updateDestination,
-	deleteDestination,
-	createSource,
-	getSource,
-	updateSource,
-	deleteSource,
+	createPlace,
+	getPlaces,
+	updatePlace,
+	deletePlace,
 	createHotel,
 	getHotel,
 	updateHotel,
@@ -27,21 +23,49 @@ import {
 	getAllUserPackage,
 	verifyPayment,
 } from "../controllers/adminController.js";
+// import {
+// 	createDestination,
+// 	getDestination,
+// 	updateDestination,
+// 	deleteDestination,
+// 	createSource,
+// 	getSource,
+// 	updateSource,
+// 	deleteSource,
+// 	createHotel,
+// 	getHotel,
+// 	updateHotel,
+// 	deleteHotel,
+// 	addTransport,
+// 	getTransports,
+// 	updateTransport,
+// 	deleteTransport,
+// 	createPackage,
+// 	getPackages,
+// 	getPackage,
+// 	updatePackage,
+// 	deletePackage,
+// 	applyPackage,
+// 	getAllBookings,
+// 	getUserBookings,
+// 	getAllUserPackage,
+// 	verifyPayment,
+// } from "../controllers/adminController.js";
 import { confirmBooking, createPaymentOrder } from "../controllers/Payments.js";
 import { verifyAdmin, verifyToken } from "../middleware/verifyToken.js";
 const router = express.Router();
 
 // Destination routes
-router.post('/destinations',verifyToken, verifyAdmin, createDestination);
-router.get('/destinations', verifyToken, getDestination);
-router.put('/destinations/:id',verifyToken, verifyAdmin, updateDestination); // Update destination
-router.delete('/destinations/:id',verifyToken, verifyAdmin, deleteDestination); // Delete destination
+router.post('/places',verifyToken, verifyAdmin, createPlace);
+router.get('/places', verifyToken, getPlaces);
+router.put('/places/:id',verifyToken, verifyAdmin, updatePlace); // Update destination
+router.delete('/places/:id',verifyToken, verifyAdmin, deletePlace); // Delete destination
 
 // Source routes
-router.post('/sources',verifyToken, verifyAdmin, createSource);
-router.get('/sources',verifyToken, getSource);
-router.put('/sources/:id',verifyToken, verifyAdmin, updateSource); // Update source
-router.delete('/sources/:id',verifyToken, verifyAdmin, deleteSource); // Delete source
+// router.post('/sources',verifyToken, verifyAdmin, createSource);
+// router.get('/sources',verifyToken, getSource);
+// router.put('/sources/:id',verifyToken, verifyAdmin, updateSource); // Update source
+// router.delete('/sources/:id',verifyToken, verifyAdmin, deleteSource); // Delete source
 
 // Hotel routes
 router.post('/hotels',verifyToken, verifyAdmin, createHotel);

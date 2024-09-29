@@ -2,6 +2,13 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 import NavbarUser from '../components/NavbarUser';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Grid'; // To arrange cards in a grid layout
 
 const MyTripsPage = () => {
   const token = localStorage.getItem('token');  // Retrieve token from localStorage
@@ -18,7 +25,7 @@ const MyTripsPage = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/admin/user/${user._id}/bookings`,config);
+        const response = await axios.get(`http://localhost:5000/api/admin/user/${user._id}/bookings`, config);
         setBookings(response.data);
         setLoading(false);
       } catch (err) {
@@ -39,43 +46,50 @@ const MyTripsPage = () => {
   }
 
   return (
-   <>
-    <NavbarUser></NavbarUser>
-    <div>
-      {bookings.length === 0 ? (
-        <p>No trips found.</p>
-      ) : (
-        <div>
-          {bookings.map((booking) => (
-            <div key={booking._id} style={styles.card}>
-              <h1 style={styles.font_head}>{booking.package.name}</h1>
-              <p><strong>Source:</strong> {booking.package.source.name}</p>
-              <p><strong>Destination:</strong> {booking.package.destination.name}</p>
-              <p><strong>Start Date:</strong> {new Date(booking.package.startDate).toLocaleDateString()}</p>
-              <p><strong>End Date:</strong> {new Date(booking.package.endDate).toLocaleDateString()}</p>
-              <p><strong>Nights:</strong> {booking.package.nights}</p>
-              <p><strong>Total Cost:</strong> ₹{booking.totalCost}</p>
-              <p><strong>Number of People:</strong> {booking.people.length}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-   </>
+    <>
+      <NavbarUser />
+      <Box sx={{ padding: 4, backgroundColor: '#f7fafc' }}> {/* Container padding and light background */}
+        {bookings.length === 0 ? (
+          <Typography variant="h6">No trips found.</Typography>
+        ) : (
+          <Grid container spacing={3}>
+            {bookings.map((booking) => (
+              <Grid item xs={12} sm={6} md={4} key={booking._id}> {/* Grid responsive layout */}
+                <Card sx={{ minWidth: 275, boxShadow: 3 }}>
+                  <CardContent>
+                    <Typography gutterBottom sx={{ color: 'text.secondary', fontSize: 14 }}>
+                      {booking.package?.name || 'Unknown'}
+                    </Typography>
+                    <Typography variant="h5" component="div">
+                      {booking.package?.source?.name || 'Unknown'} • {booking.package?.destination?.name || 'Unknown'}
+                    </Typography>
+                    <Typography sx={{ mb: 1.5, color: 'text.secondary' }}>
+                      {booking.package?.startDate ? new Date(booking.package.startDate).toLocaleDateString() : 'Unknown'} - {booking.package?.endDate ? new Date(booking.package.endDate).toLocaleDateString() : 'Unknown'}
+                    </Typography>
+                    <Typography variant="body2">
+                      Total Cost: ₹{booking.totalCost || 'Unknown'}
+                      <br />
+                      Nights: {booking.package?.nights || 'Unknown'}
+                      <br />
+                      Number of People: {booking.people?.length || 'Unknown'}
+                    </Typography>
+                  </CardContent>
+                  <CardActions>
+                    <Button size="small" onClick={() => handleBookingDetails(booking._id)}>View Details</Button>
+                  </CardActions>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )}
+      </Box>
+    </>
   );
 };
 
-const styles = {
-  card: {
-    backgroundColor: '#fff',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    marginBottom: '20px',
-  },
-  font_head : {
-    fontSize: '25px'
-  }
+// Placeholder for view details functionality
+const handleBookingDetails = (bookingId) => {
+  console.log('Viewing details for booking:', bookingId);
 };
 
 export default MyTripsPage;

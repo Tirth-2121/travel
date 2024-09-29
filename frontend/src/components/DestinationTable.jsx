@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import NavbarAdmin from './NavbarAdmin';
-import AddDestinationForm from './AddDestinationForm';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
+import NavbarAdmin from './NavbarAdmin';
 
 const DestinationTable = () => {
   const token = localStorage.getItem('token');  // Retrieve token from localStorage
@@ -17,9 +17,6 @@ const DestinationTable = () => {
   const [editFormData, setEditFormData] = useState({ name: '', description: '' });
   const navigate = useNavigate();
 
-  const navigateTo = (path) => {
-    navigate(path);
-  };
   useEffect(() => {
     fetchDestinations();
   }, []);
@@ -27,11 +24,11 @@ const DestinationTable = () => {
   // Fetch all destinations
   const fetchDestinations = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/destinations',config); // Adjust your API route as necessary
+      const response = await axios.get('http://localhost:5000/api/admin/places', config);
       setDestinations(response.data);
     } catch (error) {
-      console.error('Error fetching destinations:', error);
-      toast.error('Error in fetching data');
+      console.error('Error fetching places:', error);
+      toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
     }
   };
 
@@ -40,13 +37,12 @@ const DestinationTable = () => {
     const confirmDelete = window.confirm("Are you sure you want to delete this destination?");
     if (confirmDelete) {
       try {
-        await axios.delete(`http://localhost:5000/api/admin/destinations/${id}`,config);
+        await axios.delete(`http://localhost:5000/api/admin/places/${id}`, config);
         fetchDestinations(); // Refresh the list after deletion
-        toast.success('Destination deleted successfully!'); // Success toast
+        toast.success('Destination deleted successfully!');
       } catch (error) {
-        console.error('Error deleting destination:', error);
-        toast.error('Error deleting destination. Please try again.'); // Error toast
-
+        console.error('Error deleting place:', error);
+        toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
       }
     }
   };
@@ -54,28 +50,25 @@ const DestinationTable = () => {
   // Handle edit form submit
   const handleEditFormSubmit = async (event) => {
     event.preventDefault();
-    const loadingToast = toast.loading('Editing destination...');
+    const loadingToast = toast.loading('Updating place...');
 
     try {
-      await axios.put(`http://localhost:5000/api/admin/destinations/${editId}`, editFormData,config);
+      await axios.put(`http://localhost:5000/api/admin/places/${editId}`, editFormData, config);
       setEditId(null); // Exit edit mode
       fetchDestinations(); // Refresh the list
-      toast.success('Destination updated successfully!'); // Success toast
-
+      toast.success('Place updated successfully!');
     } catch (error) {
-      console.error('Error updating destination:', error);
-      toast.error('Error updating destination. Please try again.'); // Error toast
-
+      console.error('Error updating place:', error);
+      toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
+    } finally {
+      toast.dismiss(loadingToast); // Dismiss the loading toast
     }
-    finally {
-        toast.dismiss(loadingToast); // Dismiss the loading toast
-      }
   };
 
   // Start editing a destination
   const handleEditClick = (destination) => {
     setEditId(destination._id);
-    setEditFormData({ name: destination.name, description: destination.description });
+    setEditFormData({ name: destination.name || 'Unknown', description: destination.description });
   };
 
   // Handle form input changes
@@ -84,85 +77,103 @@ const DestinationTable = () => {
   };
 
   return (
-  <>
-    <NavbarAdmin></NavbarAdmin>
-    <div>
-
-    <div style={styles.buttonContainer}>
-        <button style={styles.button} onClick={() => navigateTo('/adddestination')}>Add Destinations</button>
+    <>
+      <NavbarAdmin />
+      <div style={styles.container}>
+        <Button variant="contained" color="primary" onClick={() => navigate('/adddestination')} style={styles.button}>
+          Add Place
+        </Button>
+        <Typography variant="h4" gutterBottom>
+          Place Table
+        </Typography>
+        {editId ? (
+          <form onSubmit={handleEditFormSubmit} style={styles.form}>
+            <TextField
+              label="Name"
+              name="name"
+              value={editFormData.name}
+              onChange={handleEditFormChange}
+              required
+              variant="outlined"
+              fullWidth
+              style={styles.textField}
+            />
+            <TextField
+              label="Description"
+              name="description"
+              value={editFormData.description}
+              onChange={handleEditFormChange}
+              variant="outlined"
+              fullWidth
+              style={styles.textField}
+            />
+            <Button type="submit" variant="contained" color="primary" style={styles.submitButton}>
+              Save
+            </Button>
+            <Button onClick={() => setEditId(null)} variant="outlined" color="secondary">
+              Cancel
+            </Button>
+          </form>
+        ) : (
+          <TableContainer component={Paper} style={styles.tableContainer}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Description</TableCell>
+                  <TableCell>Edit</TableCell>
+                  <TableCell>Delete</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {destinations.map((destination) => (
+                  <TableRow key={destination._id}>
+                    <TableCell>{destination.name || 'Unknown'}</TableCell>
+                    <TableCell>{destination.description || 'No description'}</TableCell>
+                    <TableCell>
+                      <Button onClick={() => handleEditClick(destination)} variant="outlined" color="primary">
+                        Edit
+                      </Button>
+                    </TableCell>
+                    <TableCell>
+                      <Button onClick={() => handleDelete(destination._id)} variant="outlined" color="error">
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </div>
-      <h1>Destination Table</h1>
-      {editId ? (
-        <form onSubmit={handleEditFormSubmit}>
-          <input
-            type="text"
-            name="name"
-            value={editFormData.name}
-            onChange={handleEditFormChange}
-            required
-          />
-          <input
-            type="text"
-            name="description"
-            value={editFormData.description}
-            onChange={handleEditFormChange}
-          />
-          <button type="submit">Save</button>
-          <button onClick={() => setEditId(null)}>Cancel</button>
-        </form>
-      ) : (
-        <table border="1" style={{ width: '100%', textAlign: 'left' }}>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Description</th>
-              <th>Edit</th>
-              <th>Delete</th>
-            </tr>
-          </thead>
-          <tbody>
-            {destinations.map((destination) => (
-              <tr key={destination._id}>
-                <td>{destination.name}</td>
-                <td>{destination.description}</td>
-                <td>
-                  <button onClick={() => handleEditClick(destination)}>Edit</button>
-                </td>
-                <td>
-                  <button onClick={() => handleDelete(destination._id)}>Delete</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
-  </>
+    </>
   );
 };
+
 const styles = {
-    heading: {
-      fontSize:"32px",
-    },
-    container: {
-      textAlign: 'center',
-      padding: '50px',
-    },
-    buttonContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: '20px',
-    },
-    button: {
-      padding: '10px 20px',
-      fontSize: '16px',
-      cursor: 'pointer',
-      border: 'none',
-      borderRadius: '5px',
-      backgroundColor: '#007BFF',
-      color: 'white',
-      transition: 'background-color 0.3s',
-    },
-  };
+  container: {
+    padding: '20px',
+  },
+  button: {
+    marginBottom: '20px',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
+    marginBottom: '20px',
+  },
+  textField: {
+    marginBottom: '10px',
+  },
+  submitButton: {
+    marginRight: '10px',
+  },
+  tableContainer: {
+    maxWidth: '100%',
+    marginTop: '20px',
+  },
+};
+
 export default DestinationTable;

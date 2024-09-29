@@ -16,7 +16,7 @@ const AppliedPackage = () => {
   useEffect(() => {
     const fetchPackages = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/admin/packages',config);
+        const response = await axios.get('http://localhost:5000/api/admin/packages', config);
         setPackages(response.data);
       } catch (error) {
         console.error('Error fetching packages:', error);
@@ -32,50 +32,75 @@ const AppliedPackage = () => {
 
   return (
     <>
-        <NavbarAdmin></NavbarAdmin>
-        <div style={styles.container}>
-      <h1 style={styles.head}>All Packages</h1>
-      <ul style={styles.packageList}>
-        {packages.map((pkg, index) => (
-          <li key={pkg._id} style={styles.packageItem}>
-            <button onClick={() => handlePackageClick(pkg._id)} style={styles.packageButton}>
-              {index + 1}. {pkg.name}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
+      <NavbarAdmin />
+      <div style={styles.container}>
+        <h1 style={styles.head}>All Packages</h1>
+        <ul style={styles.packageList}>
+          {packages.map((pkg, index) => (
+            <li key={pkg._id} style={styles.packageItem}>
+              <button onClick={() => handlePackageClick(pkg._id)} style={styles.packageButton}>
+                <span style={styles.packageIndex}>{index + 1}.</span>
+                <span style={styles.packageName}>{pkg.name || 'Unknown'}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
     </>
-   
   );
 };
 
 const styles = {
-    head:{
-        fontSize:'28px',
-        fontWeight:"bold",
-        marginBottom:"10px"
-    },
   container: {
     padding: '20px',
+    maxWidth: '800px',
+    margin: '0 auto',
+    backgroundColor: '#f9f9f9',
+    borderRadius: '10px',
+    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+  },
+  head: {
+    fontSize: '32px',
+    fontWeight: 'bold',
+    marginBottom: '20px',
+    textAlign: 'center',
+    color: '#333',
   },
   packageList: {
     listStyleType: 'none',
     padding: 0,
+    margin: 0,
   },
   packageItem: {
-    marginBottom: '10px',
+    marginBottom: '15px',
+    borderRadius: '10px',
+    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.15)',
   },
   packageButton: {
-    padding: '10px',
-    fontSize: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    padding: '15px',
+    fontSize: '18px',
     cursor: 'pointer',
     border: 'none',
-    borderRadius: '5px',
+    borderRadius: '10px',
     backgroundColor: '#007BFF',
     color: 'white',
     width: '100%',
     textAlign: 'left',
+    transition: 'background-color 0.3s, transform 0.3s',
+  },
+  packageButtonHover: {
+    backgroundColor: '#0056b3',
+    transform: 'scale(1.02)',
+  },
+  packageIndex: {
+    marginRight: '10px',
+    fontWeight: 'bold',
+  },
+  packageName: {
+    flex: 1,
   },
 };
 

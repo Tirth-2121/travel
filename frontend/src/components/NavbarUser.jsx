@@ -26,7 +26,7 @@ function NavbarUser() {
         <>
             <Navbar bg="dark" data-bs-theme="dark">
                 <Container>
-                    <Navbar.Brand onClick={() => handleNavigation('/')}>Travel</Navbar.Brand>
+                    <Navbar.Brand onClick={() => handleNavigation('/')} style={{cursor: 'pointer'}}>Travel</Navbar.Brand>
                     <Nav className="me-auto">
                         <Nav.Link onClick={() => handleNavigation('/my-trips')}>My Trip</Nav.Link>
                         {/* <Nav.Link onClick={() => handleNavigation('/package')}>Package</Nav.Link> */}

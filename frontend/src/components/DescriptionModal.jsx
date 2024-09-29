@@ -1,3 +1,5 @@
+import { fontSize, fontWeight, margin } from "@mui/system";
+import { Heading } from "lucide-react";
 import React from "react";
 
 const DescriptionModal = ({ isOpen, onClose, description }) => {
@@ -6,9 +8,9 @@ const DescriptionModal = ({ isOpen, onClose, description }) => {
   return (
     <div style={styles.modalOverlay}>
       <div style={styles.modalContent}>
-        <h2>Package Description</h2>
+        <h2 style={styles.heading}>Package Description</h2>
         <div style={styles.descriptionContent}>
-          <p>{description}</p>
+          <p>{description || 'Unknown'}</p>
         </div>
         <button onClick={onClose} style={styles.closeButton}>Close</button>
       </div>
@@ -17,6 +19,12 @@ const DescriptionModal = ({ isOpen, onClose, description }) => {
 };
 
 const styles = {
+  heading : {
+    fontSize:"20px",
+    marginBottom:"10px",
+    marginTop:"2px",
+    fontWeight:"bold"
+  },
   modalOverlay: {
     position: 'fixed',
     top: 0,

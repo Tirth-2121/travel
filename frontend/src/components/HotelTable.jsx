@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import NavbarAdmin from './NavbarAdmin';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { Button, TextField, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography, InputLabel, FormControl } from '@mui/material';
+import NavbarAdmin from './NavbarAdmin';
 
 const HotelTable = () => {
   const token = localStorage.getItem('token');  // Retrieve token from localStorage
@@ -17,10 +18,6 @@ const HotelTable = () => {
   const [editFormData, setEditFormData] = useState({ name: '', destination: '', pricePerNight: '' });
   const navigate = useNavigate();
 
-  const navigateTo = (path) => {
-    navigate(path);
-  };
-
   useEffect(() => {
     fetchHotels();
     fetchDestinations(); // Fetch destinations for the dropdown
@@ -29,20 +26,22 @@ const HotelTable = () => {
   // Fetch all hotels with populated destination name
   const fetchHotels = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/hotels',config); // Adjust your API route as necessary
+      const response = await axios.get('http://localhost:5000/api/admin/hotels', config); // Adjust your API route as necessary
       setHotels(response.data);
     } catch (error) {
       console.error('Error fetching hotels:', error);
+      toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
     }
   };
 
   // Fetch all destinations for the dropdown
   const fetchDestinations = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/destinations',config);
+      const response = await axios.get('http://localhost:5000/api/admin/places', config);
       setDestinations(response.data);
     } catch (error) {
       console.error('Error fetching destinations:', error);
+      toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
     }
   };
 
@@ -51,13 +50,12 @@ const HotelTable = () => {
     const confirmDelete = window.confirm("Are you sure you want to delete this hotel?");
     if (confirmDelete) {
       try {
-        await axios.delete(`http://localhost:5000/api/admin/hotels/${id}`,config);
+        await axios.delete(`http://localhost:5000/api/admin/hotels/${id}`, config);
         fetchHotels(); // Refresh the list after deletion
-        toast.success('Hotel deleted successfully!'); // Success toast
+        toast.success('Hotel deleted successfully!');
       } catch (error) {
         console.error('Error deleting hotel:', error);
-        toast.error('Error deleting hotel. Please try again.'); // Error toast
-
+        toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
       }
     }
   };
@@ -68,28 +66,25 @@ const HotelTable = () => {
     const loadingToast = toast.loading('Editing Hotel...');
 
     try {
-      await axios.put(`http://localhost:5000/api/admin/hotels/${editId}`, editFormData,config);
+      await axios.put(`http://localhost:5000/api/admin/hotels/${editId}`, editFormData, config);
       setEditId(null); // Exit edit mode
       fetchHotels(); // Refresh the list
-      toast.success('Hotel updated successfully!'); // Success toast
-
+      toast.success('Hotel updated successfully!');
     } catch (error) {
       console.error('Error updating hotel:', error);
-      toast.error('Error updating hotel. Please try again.'); // Error toast
-
+      toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
+    } finally {
+      toast.dismiss(loadingToast); // Dismiss the loading toast
     }
-    finally {
-        toast.dismiss(loadingToast); // Dismiss the loading toast
-      }
   };
 
   // Start editing a hotel
   const handleEditClick = (hotel) => {
     setEditId(hotel._id);
     setEditFormData({
-      name: hotel.name,
-      destination: hotel.destination._id, // Set destination id for the dropdown
-      pricePerNight: hotel.pricePerNight,
+      name: hotel.name || 'Unknown',
+      destination: hotel.place?._id || '', // Set destination id for the dropdown
+      pricePerNight: hotel.pricePerNight || 'Unknown',
     });
   };
 
@@ -101,71 +96,96 @@ const HotelTable = () => {
   return (
     <>
       <NavbarAdmin />
-      <div>
-        <div style={styles.buttonContainer}>
-          <button style={styles.button} onClick={() => navigateTo('/addhotel')}>Add Hotel</button>
-        </div>
-        <h1>Hotel Table</h1>
+      <div style={styles.container}>
+        <Button variant="contained" color="primary" onClick={() => navigate('/addhotel')} style={styles.button}>
+          Add Hotel
+        </Button>
+        <Typography variant="h4" gutterBottom>
+          Hotel Table
+        </Typography>
         {editId ? (
-          <form onSubmit={handleEditFormSubmit}>
-            <input
-              type="text"
+          <form onSubmit={handleEditFormSubmit} style={styles.form}>
+            <TextField
+              label="Name"
               name="name"
               value={editFormData.name}
               onChange={handleEditFormChange}
               required
+              variant="outlined"
+              fullWidth
+              style={styles.textField}
             />
-            {/* Dropdown for selecting the destination */}
-            <select
-              name="destination"
-              value={editFormData.destination}
-              onChange={handleEditFormChange}
-              required
-            >
-              <option value="">Select Destination</option>
-              {destinations.map((destination) => (
-                <option key={destination._id} value={destination._id}>
-                  {destination.name}
-                </option>
-              ))}
-            </select>
-            <input
-              type="number"
+            <FormControl fullWidth variant="outlined">
+              <InputLabel>Place *</InputLabel>
+              <Select
+                label="Place"
+                name="destination"
+                value={editFormData.destination}
+                onChange={handleEditFormChange}
+                required
+                variant="outlined"
+                fullWidth
+                style={styles.select}
+              >
+                <MenuItem value="">Select Place</MenuItem>
+                {destinations.map((destination) => (
+                  <MenuItem key={destination._id} value={destination._id}>
+                    {destination.name || 'Unknown'}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              label="Price per Night"
               name="pricePerNight"
               value={editFormData.pricePerNight}
               onChange={handleEditFormChange}
               required
+              variant="outlined"
+              fullWidth
+              type="number"
+              style={styles.textField}
             />
-            <button type="submit">Save</button>
-            <button onClick={() => setEditId(null)}>Cancel</button>
+            <Button type="submit" variant="contained" color="primary" style={styles.submitButton}>
+              Save
+            </Button>
+            <Button onClick={() => setEditId(null)} variant="outlined" color="secondary">
+              Cancel
+            </Button>
           </form>
         ) : (
-          <table border="1" style={{ width: '100%', textAlign: 'left' }}>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Destination</th>
-                <th>Price per Night</th>
-                <th>Edit</th>
-                <th>Delete</th>
-              </tr>
-            </thead>
-            <tbody>
-              {hotels.map((hotel) => (
-                <tr key={hotel._id}>
-                  <td>{hotel.name}</td>
-                  <td>{hotel.destination?.name || "Unknown"}</td> {/* Handle case when destination is not available */}
-                  <td>{hotel.pricePerNight}</td>
-                  <td>
-                    <button onClick={() => handleEditClick(hotel)}>Edit</button>
-                  </td>
-                  <td>
-                    <button onClick={() => handleDelete(hotel._id)}>Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <TableContainer component={Paper} style={styles.tableContainer}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Place</TableCell>
+                  <TableCell>Price per Night</TableCell>
+                  <TableCell>Edit</TableCell>
+                  <TableCell>Delete</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {hotels.map((hotel) => (
+                  <TableRow key={hotel._id}>
+                    <TableCell>{hotel.name || 'Unknown'}</TableCell>
+                    <TableCell>{hotel.place?.name || 'Unknown'}</TableCell>
+                    <TableCell>{hotel.pricePerNight || 'Unknown'}</TableCell>
+                    <TableCell>
+                      <Button onClick={() => handleEditClick(hotel)} variant="outlined" color="primary">
+                        Edit
+                      </Button>
+                    </TableCell>
+                    <TableCell>
+                      <Button onClick={() => handleDelete(hotel._id)} variant="outlined" color="error">
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
       </div>
     </>
@@ -173,28 +193,30 @@ const HotelTable = () => {
 };
 
 const styles = {
-  heading: {
-    fontSize: "32px",
-  },
   container: {
-    textAlign: 'center',
-    padding: '50px',
-  },
-  buttonContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '20px',
+    padding: '20px',
   },
   button: {
-    padding: '10px 20px',
-    fontSize: '16px',
-    cursor: 'pointer',
-    border: 'none',
-    borderRadius: '5px',
-    backgroundColor: '#007BFF',
-    color: 'white',
-    transition: 'background-color 0.3s',
+    marginBottom: '20px',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
+    marginBottom: '20px',
+  },
+  textField: {
+    marginBottom: '10px',
+  },
+  select: {
+    marginBottom: '10px',
+  },
+  submitButton: {
+    marginRight: '10px',
+  },
+  tableContainer: {
+    maxWidth: '100%',
+    marginTop: '20px',
   },
 };
 

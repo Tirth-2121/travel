@@ -1,12 +1,10 @@
-import {Destination} from '../models/Destination.js';
 import {Hotel} from '../models/Hotel.js';
 import {Transport} from '../models/transportSchema.js';
 import {Package} from '../models/Package.js';
-import {Source} from '../models/Source.js';
 import {Booking} from "../models/Booking.js"
 import cloudinary from '../config/cloudinaryConfig.js';
 import { User } from '../models/user.model.js';
-
+import {Place} from '../models/Place.js';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import { sendPaymentConfirmationEmail } from '../mailtrap/emails.js';
@@ -16,53 +14,53 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_SECRET,
 });
 
-export const createDestination = async (req, res) => {
+export const createPlace = async (req, res) => {
   try {
-    const destination = new Destination(req.body);
-    console.log(destination)
-    await destination.save();
-    res.status(201).json(destination);
+    const place = new Place(req.body);
+    console.log(place)
+    await place.save();
+    res.status(201).json(place);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
 // Update Destination
-export const updateDestination = async (req, res) => {
+export const updatePlace = async (req, res) => {
   try {
     const { name, description } = req.body;
-    const destination = await Destination.findByIdAndUpdate(req.params.id, { name, description }, { new: true });
-    if (!destination) {
-      return res.status(404).json({ message: 'Destination not found' });
+    const place = await Place.findByIdAndUpdate(req.params.id, { name, description }, { new: true });
+    if (!place) {
+      return res.status(404).json({ message: 'Place not found' });
     }
-    res.status(200).json(destination);
+    res.status(200).json(place);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
 
 // Update Source
-export const updateSource = async (req, res) => {
-  try {
-    const { name } = req.body;
-    const source = await Source.findByIdAndUpdate(req.params.id, { name }, { new: true });
-    if (!source) {
-      return res.status(404).json({ message: 'Source not found' });
-    }
-    res.status(200).json(source);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
+// export const updateSource = async (req, res) => {
+//   try {
+//     const { name } = req.body;
+//     const source = await Source.findByIdAndUpdate(req.params.id, { name }, { new: true });
+//     if (!source) {
+//       return res.status(404).json({ message: 'Source not found' });
+//     }
+//     res.status(200).json(source);
+//   } catch (error) {
+//     res.status(400).json({ message: error.message });
+//   }
+// };
 // Update Hotel
 export const updateHotel = async (req, res) => {
   const { id } = req.params;
   const { name, pricePerNight, destination } = req.body;
-  
+  const place = destination 
   try {
     const updatedHotel = await Hotel.findByIdAndUpdate(id, {
       name,
       pricePerNight,
-      destination // Update destination here
+      place // Update destination here
     }, { new: true });
 
     res.status(200).json(updatedHotel);
@@ -76,6 +74,9 @@ export const updateHotel = async (req, res) => {
 export const updateTransport = async (req, res) => {
   try {
     const { type, from, to, price } = req.body;
+    if(from === to){
+      return res.status(400).json({ message: "Source and destination cannot be the same" });
+    }
     const transport = await Transport.findByIdAndUpdate(req.params.id, { type, from, to, price }, { new: true });
     if (!transport) {
       return res.status(404).json({ message: 'Transport not found' });
@@ -86,31 +87,31 @@ export const updateTransport = async (req, res) => {
   }
 };
 
-// Delete Destination
-export const deleteDestination = async (req, res) => {
+// Delete Place
+export const deletePlace = async (req, res) => {
   try {
-    const destination = await Destination.findByIdAndDelete(req.params.id);
-    if (!destination) {
-      return res.status(404).json({ message: 'Destination not found' });
+    const place = await Place.findByIdAndDelete(req.params.id);
+    if (!place) {
+      return res.status(404).json({ message: 'Place not found' });
     }
-    res.status(200).json({ message: 'Destination deleted successfully' });
+    res.status(200).json({ message: 'Place deleted successfully' });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
 
 // Delete Source
-export const deleteSource = async (req, res) => {
-  try {
-    const source = await Source.findByIdAndDelete(req.params.id);
-    if (!source) {
-      return res.status(404).json({ message: 'Source not found' });
-    }
-    res.status(200).json({ message: 'Source deleted successfully' });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
+// export const deleteSource = async (req, res) => {
+//   try {
+//     const source = await Source.findByIdAndDelete(req.params.id);
+//     if (!source) {
+//       return res.status(404).json({ message: 'Source not found' });
+//     }
+//     res.status(200).json({ message: 'Source deleted successfully' });
+//   } catch (error) {
+//     res.status(400).json({ message: error.message });
+//   }
+// };
 
 // Delete Hotel
 export const deleteHotel = async (req, res) => {
@@ -137,30 +138,30 @@ export const deleteTransport = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
-export const createSource = async (req, res) => {
-  try {
-    const source = new Source(req.body);
-    console.log(source)
-    await source.save();
-    res.status(201).json(source);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
+// export const createSource = async (req, res) => {
+//   try {
+//     const source = new Source(req.body);
+//     console.log(source)
+//     await source.save();
+//     res.status(201).json(source);
+//   } catch (error) {
+//     res.status(400).json({ message: error.message });
+//   }
+// };
 
-export const getSource = async (req, res) => {
-  try {
-    const source = await Source.find();
-    res.status(200).send(source);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
+// export const getSource = async (req, res) => {
+//   try {
+//     const source = await Source.find();
+//     res.status(200).send(source);
+//   } catch (error) {
+//     res.status(400).json({ message: error.message });
+//   }
+// };
 
-export const getDestination = async (req, res) => {
+export const getPlaces = async (req, res) => {
   try {
-    const destinations = await Destination.find();
-    res.status(200).send(destinations);
+    const places = await Place.find();
+    res.status(200).send(places);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -168,7 +169,9 @@ export const getDestination = async (req, res) => {
 
 export const createHotel = async (req, res) => {
   try {
-    const hotel = new Hotel(req.body);
+    const { name, pricePerNight, destination } = req.body;
+  const place = destination 
+  const hotel = new Hotel({name , pricePerNight , place});
     await hotel.save();
     res.status(201).json(hotel);
   } catch (error) {
@@ -178,7 +181,7 @@ export const createHotel = async (req, res) => {
 
 export const getHotel = async (req, res) => {
   try {
-    const hotels = await Hotel.find().populate('destination'); // Populate the destination field
+    const hotels = await Hotel.find().populate('place'); // Populate the destination field
     res.status(200).send(hotels);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -188,6 +191,10 @@ export const getHotel = async (req, res) => {
 export const addTransport = async (req, res) => {
     try {
       const { type, from, to, price } = req.body;
+      // console.log(req.body)
+      if(from === to){
+        return res.status(400).json({ message: "Source and destination cannot be the same" });
+      }
       const transport = new Transport({ type, from, to, price });
       await transport.save();
       res.status(201).json(transport);
@@ -220,18 +227,20 @@ export const addTransport = async (req, res) => {
         endDate,
         basePrice,
         totalDistance,
-        image, // Add the image field
+        images, // Add the image field
         description 
       } = req.body;
   
       console.log(req.body);
   
       // Fetch related entities
-      const source = await Source.findById(sourceId);
-      const destination = await Destination.findById(destinationId);
+      const source = await Place.findById(sourceId);
+      const destination = await Place.findById(destinationId);
       const hotel = await Hotel.findById(hotelId);
       const transports = await Transport.findById(transportId);
-  
+  if(sourceId === destinationId){
+    return res.status(400).json({ message: "Source and destination cannot be the same" });
+  }
       const start = new Date(startDate);
       const end = new Date(endDate);
       const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
@@ -246,13 +255,29 @@ export const addTransport = async (req, res) => {
   
       console.log(totalPrice);
   
+      // Validate images: ensure minimum 1 and maximum 5 images
+    if (!images || images.length < 1 || images.length > 5) {
+      return res.status(400).json({ message: "You must upload at least 1 image and a maximum of 5 images." });
+    }
+
       // Upload image to Cloudinary if provided
-      let imageResult;
-      if (image) {
-        imageResult = await cloudinary.uploader.upload(image, {
-          folder: 'packages', // Specify a folder in Cloudinary for packages
-        });
-      }
+      // let imageResult;
+      // if (image) {
+      //   imageResult = await cloudinary.uploader.upload(image, {
+      //     folder: 'packages', // Specify a folder in Cloudinary for packages
+      //   });
+      // }
+      // Upload images to Cloudinary and collect the results
+    const imageResults = [];
+    for (const image of images) {
+      const imageResult = await cloudinary.uploader.upload(image, {
+        folder: 'packages', // Specify a folder in Cloudinary for packages
+      });
+      imageResults.push({
+        public_id: imageResult.public_id,
+        url: imageResult.secure_url,
+      });
+    }
   
       // Create a new package with the uploaded image
       const packages = new Package({
@@ -268,9 +293,7 @@ export const addTransport = async (req, res) => {
         totalPrice,
         nights,
         description ,
-        image: imageResult
-          ? { public_id: imageResult.public_id, url: imageResult.secure_url }
-          : null, // Store Cloudinary image details, if available
+        images: imageResults
       });
   
       await packages.save();
@@ -287,89 +310,134 @@ export const addTransport = async (req, res) => {
       res.status(400).json({ message: error.message });
     }
   };
-  
+
   export const updatePackage = async (req, res) => {
     try {
-        const {
-            name,
-            sourceId,
-            destinationId,
-            hotelId,
-            transportId,
-            startDate,
-            endDate,
-            basePrice,
-            totalDistance,
-            image, // New image URL or Base64 string
-            description 
-        } = req.body;
-
-        // Find the package by ID
-        const pkg = await Package.findById(req.params.id);
-        if (!pkg) {
-            return res.status(404).json({ message: 'Package not found' });
+      const {
+        name,
+        sourceId,
+        destinationId,
+        hotelId,
+        transportId,
+        startDate,
+        endDate,
+        basePrice,
+        totalDistance,
+        newImages, // Array of image URLs or Base64 strings for new images
+        imagesToRemove, // Array of public IDs of images to remove
+        description
+      } = req.body;
+  
+      // Find the package by ID
+      const pkg = await Package.findById(req.params.id);
+      if (!pkg) {
+        return res.status(404).json({ message: 'Package not found' });
+      }
+      if(sourceId === destinationId){
+        return res.status(400).json({ message: "Source and destination cannot be the same" });
+      }
+      // Update package fields only if provided, otherwise retain existing values
+      if (name) pkg.name = name;
+      if (sourceId) {
+        const source = await Place.findById(sourceId);
+        if (!source) throw new Error('Source not found');
+        pkg.source = source;
+      }
+      if (destinationId) {
+        const destination = await Place.findById(destinationId);
+        if (!destination) throw new Error('Destination not found');
+        pkg.destination = destination;
+      }
+      if (hotelId) {
+        const hotel = await Hotel.findById(hotelId);
+        if (!hotel) throw new Error('Hotel not found');
+        pkg.hotel = hotel;
+      }
+      if (transportId) {
+        const transport = await Transport.findById(transportId);
+        if (!transport) throw new Error('Transport not found');
+        pkg.transports = transport;
+      }
+      if (startDate) pkg.startDate = new Date(startDate);
+      if (endDate) pkg.endDate = new Date(endDate);
+      if (basePrice) pkg.basePrice = basePrice;
+      if (totalDistance) pkg.totalDistance = totalDistance;
+      if (description) pkg.description = description;
+  
+      // Handle removing images from Cloudinary
+      if (imagesToRemove && imagesToRemove.length > 0) {
+        for (const publicId of imagesToRemove) {
+          const imageIndex = pkg.images.findIndex(img => img.public_id === publicId);
+          if (imageIndex !== -1) {
+            // Remove from local array and Cloudinary
+            pkg.images.splice(imageIndex, 1);
+            await cloudinary.uploader.destroy(publicId);
+          }
         }
-
-        // Update package fields
-        pkg.name = name || pkg.name;
-        pkg.source = await Source.findById(sourceId) || pkg.source;
-        pkg.destination = await Destination.findById(destinationId) || pkg.destination;
-        pkg.hotel = await Hotel.findById(hotelId) || pkg.hotel;
-        pkg.transports = await Transport.findById(transportId) || pkg.transports;
-        pkg.startDate = startDate || pkg.startDate;
-        pkg.endDate = endDate || pkg.endDate;
-        pkg.basePrice = basePrice || pkg.basePrice;
-        pkg.totalDistance = totalDistance || pkg.totalDistance;
-        pkg.description  = description || pkg.description ;
-        // Handle image update
-        if (image) {
-            // Optionally, delete the old image if it exists
-            if (pkg.image && pkg.image.public_id) {
-                await cloudinary.uploader.destroy(pkg.image.public_id);
-            }
-
-            // Upload the new image
-            const uploadResponse = await cloudinary.uploader.upload(image, {
-                folder: 'packages' // Optional: specify a folder
-            });
-
-            // Update package with the new image URL and public ID
-            pkg.image = {
-                url: uploadResponse.secure_url,
-                public_id: uploadResponse.public_id
-            };
+      }
+  
+      // Validate the number of images
+      const totalImages = pkg.images.length + (newImages ? newImages.length : 0) - (imagesToRemove ? imagesToRemove.length : 0);
+      if (totalImages < 1) {
+        return res.status(400).json({ message: 'A package must have at least one image.' });
+      }
+      if (totalImages > 5) {
+        return res.status(400).json({ message: 'A package can have a maximum of 5 images.' });
+      }
+  
+      // Handle uploading new images to Cloudinary
+      if (newImages && newImages.length > 0) {
+        const imageResults = [];
+        for (const image of newImages) {
+          const uploadResponse = await cloudinary.uploader.upload(image, {
+            folder: 'packages', // Optional: specify a folder
+          });
+          imageResults.push({
+            url: uploadResponse.secure_url,
+            public_id: uploadResponse.public_id
+          });
         }
-
-        // Calculate number of nights
+        // Append new images to the package's existing images
+        pkg.images = [...pkg.images, ...imageResults];
+      }
+  
+      // Calculate the number of nights (ensure dates are valid)
+      if (pkg.startDate && pkg.endDate && pkg.startDate <= pkg.endDate) {
         const start = new Date(pkg.startDate);
         const end = new Date(pkg.endDate);
         const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-
-        // Calculate total price
-        const hotelPrice = Number(pkg.hotel.pricePerNight) * nights; // Total hotel cost for the nights
-        const transportPrice = Number(pkg.transports.price); // Single transport price
-        pkg.totalPrice = (transportPrice * 2) + hotelPrice + Number(pkg.basePrice); // Total price calculation
-
-        // Ensure totalPrice is a valid number
-        if (isNaN(pkg.totalPrice)) {
-            throw new Error('Invalid totalPrice calculation');
-        }
-
-        await pkg.save();
-
-        // Populate the updated package with related data
-        const populatedPackage = await Package.findById(pkg._id)
-            .populate('source')
-            .populate('destination')
-            .populate('hotel')
-            .populate('transports');
-
-        res.status(200).json(populatedPackage);
+  
+        // Recalculate total price
+        const hotelPrice = Number(pkg.hotel.pricePerNight) * nights;
+        const transportPrice = Number(pkg.transports.price);
+        pkg.totalPrice = (transportPrice * 2) + hotelPrice + Number(pkg.basePrice);
+      } else {
+        throw new Error('Invalid start date or end date.');
+      }
+  
+      // Check if totalPrice calculation is valid
+      if (isNaN(pkg.totalPrice)) {
+        throw new Error('Invalid total price calculation.');
+      }
+  
+      // Save updated package
+      await pkg.save();
+  
+      // Populate the updated package with related fields
+      const populatedPackage = await Package.findById(pkg._id)
+        .populate('source')
+        .populate('destination')
+        .populate('hotel')
+        .populate('transports');
+  
+      res.status(200).json(populatedPackage);
     } catch (error) {
-        console.error('Error updating package:', error);
-        res.status(400).json({ message: error.message });
+      console.error('Error updating package:', error);
+      res.status(400).json({ message: error.message });
     }
-};
+  };
+
+
  export const deletePackage = async (req, res) => {
   try {
     const packageId = req.params.id;
@@ -379,10 +447,10 @@ export const addTransport = async (req, res) => {
     if (!pkg) return res.status(404).send('Package not found');
     
     // Delete the image from Cloudinary if it exists
-    if (pkg.image && pkg.image.public_id) {
+    if (pkg.images && pkg.images.public_id) {
       // Ensure the public_id is correct
-      console.log('Deleting image with public_id:', pkg.image.public_id);
-      await cloudinary.uploader.destroy(pkg.image.public_id, (result) => {
+      console.log('Deleting image with public_id:', pkg.images.public_id);
+      await cloudinary.uploader.destroy(pkg.images.public_id, (result) => {
         if (result.result === 'ok') {
           console.log('Image deleted successfully');
         } else {

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import NavbarUser from '../components/NavbarUser';
+import { Card, CardMedia, CardContent, Typography, Button, Stack, Divider, CardActions } from '@mui/material';
 
 const DashboardPage1 = () => {
   const token = localStorage.getItem('token');  // Retrieve token from localStorage
@@ -18,10 +19,9 @@ const DashboardPage1 = () => {
   const { logout } = useAuthStore();
 
   useEffect(() => {
-    // Fetch the package details from the API
     const fetchPackages = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/admin/packages',config);
+        const response = await axios.get('http://localhost:5000/api/admin/packages', config);
         setPackages(response.data); // assuming the response data is an array of packages
         setLoading(false);
       } catch (err) {
@@ -40,58 +40,73 @@ const DashboardPage1 = () => {
   if (error) {
     return <div>{error}</div>;
   }
+
   const handleApply = (pkg) => {
-    // Navigate to the apply package page with the package details
     navigate('/apply-package', { state: { package: pkg } });
   };
-  const handleLogout = () => {
-    // Clear localStorage and logout the user
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    logout();
 
-    // Redirect to the login page
-    navigate('/');
-  };
-  // Function to check if the apply button should be disabled
   const isApplyButtonDisabled = (startDate) => {
     const today = new Date();
     const start = new Date(startDate);
     const deadline = new Date(start);
     deadline.setDate(start.getDate() - 3);
 
-    // Disable if today's date is greater than the deadline
     return today > deadline;
   };
 
   return (
     <>
-    <NavbarUser></NavbarUser>
+      <NavbarUser />
       <div style={styles.gridContainer}>
         {packages.map((pkg, index) => (
-          <div key={index} style={styles.card}>
-          {pkg.image && (
-              <img
-                src={pkg.image.url}
-                alt={pkg.name}
-                style={styles.image}
+          <Card key={index} sx={{ maxWidth: 345, margin: '20px', borderRadius: '12px', boxShadow: 3 }}>
+            {pkg.images && (
+              <CardMedia
+                component="img"
+                height="140"
+                image={pkg.images[0]?.url || '/placeholder.svg'}
+                alt={pkg.name || 'Unknown'}
+                style={{ borderRadius: '12px 12px 0 0' }}
               />
             )}
-            <h3 style={styles.title}>Package Name: {pkg.name}</h3>
-            <p><strong>Source:</strong> {pkg.source.name}</p>
-            <p><strong>Destination:</strong> {pkg.destination.name}</p>
-            <p><strong>Start Date:</strong> {new Date(pkg.startDate).toLocaleDateString()}</p>
-            <p><strong>End Date:</strong> {new Date(pkg.endDate).toLocaleDateString()}</p>
-            <p><strong>Nights:</strong> {pkg.nights}</p>
-            <p><strong>Total Price:</strong> ₹{pkg.totalPrice}</p>
-            <button
-              style={styles.button}
-              onClick={() => handleApply(pkg)}
-              disabled={isApplyButtonDisabled(pkg.startDate)}
-            >
-              {isApplyButtonDisabled(pkg.startDate) ? 'Registration Closed' : 'Apply'}
-            </button>
-          </div>
+            <CardContent>
+              <Stack spacing={3}>
+                <Typography gutterBottom variant="h5" component="div">
+                  {pkg.name || 'Unknown'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Source:</strong> {pkg.source?.name || 'Unknown'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Destination:</strong> {pkg.destination?.name || 'Unknown'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Start Date:</strong> {pkg.startDate ? new Date(pkg.startDate).toLocaleDateString() : 'Unknown'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  <strong>End Date:</strong> {pkg.endDate ? new Date(pkg.endDate).toLocaleDateString() : 'Unknown'}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Nights:</strong> {pkg.nights || 'Unknown'}
+                </Typography>
+                <Typography variant="h6" color="blue.600">
+                  ₹{pkg.totalPrice || 'Unknown'}
+                </Typography>
+              </Stack>
+            </CardContent>
+            <Divider />
+            <CardActions>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleApply(pkg)}
+                disabled={isApplyButtonDisabled(pkg.startDate)}
+                sx={{ flexGrow: 1 }}
+              >
+                {isApplyButtonDisabled(pkg.startDate) ? 'Registration Closed' : 'Apply'}
+              </Button>
+            </CardActions>
+          </Card>
         ))}
       </div>
     </>
@@ -101,40 +116,11 @@ const DashboardPage1 = () => {
 const styles = {
   gridContainer: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
     gap: '20px',
     padding: '20px',
-  },
-  card: {
-    backgroundColor: '#fff',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    overflow: 'hidden', // To handle overflow of image
-  },
-  title: {
-    fontSize: '20px',
-    marginBottom: '10px',
-  },
-  image: {
-    width: '47%', // Ensures the image fits the container width
-    height: 'auto', // Maintains aspect ratio
-    objectFit: 'cover', // Crops the image to fit the container without stretching
-    borderRadius: '8px',
-    marginBottom: '10px',
-  },
-  button: {
-    padding: '10px 20px',
-    fontSize: '16px',
-    cursor: 'pointer',
-    border: 'none',
-    borderRadius: '5px',
-    backgroundColor: '#007BFF',
-    color: 'white',
-    transition: 'background-color 0.3s',
+    justifyContent: 'center',
   },
 };
-
-
 
 export default DashboardPage1;

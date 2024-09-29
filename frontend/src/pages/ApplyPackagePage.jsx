@@ -85,7 +85,7 @@ const ApplyPackagePage = () => {
             toast.success('Payment successfully!');
             navigate('/'); // Redirect after success
           } catch (error) {
-            toast.error('Payment Failed. Please try again.');
+            toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
             setError(error.response ? error.response.data.message : 'Payment verification failed');
           }
           finally {
@@ -103,6 +103,7 @@ const ApplyPackagePage = () => {
       const razorpay = new window.Razorpay(options);
       razorpay.open();
     } catch (error) {
+      toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
       setError(error.response ? error.response.data.message : 'An error occurred');
     } finally {
       setLoading(false);
@@ -116,21 +117,21 @@ const ApplyPackagePage = () => {
       <div style={styles.container}>
       <div style={styles.packageDetails}>
         <h2 style={styles.head}>Package Details</h2>
-        {pkg.image && (
-          <img src={pkg.image.url} alt={pkg.name} style={styles.image} />
-        )}
-        <h3 style={styles.head}>{pkg.name}</h3>
+        {pkg.images && pkg.images.map((image, index) => (
+          <img key={index} src={image.url} alt={`${pkg.name || 'Unknown'} ${index + 1}`} style={styles.image} />
+        ))}
+        <h3 style={styles.head}>{pkg.name || 'Unknown'}</h3>
         {pkg.description && (
-            <p style={styles.description}>
+          <p style={styles.description}>
             <strong>Description:  </strong>
-              {pkg.description}
-            </p>
-          )}
-        <p><strong>Source:</strong> {pkg.source.name}</p>
-        <p><strong>Destination:</strong> {pkg.destination.name}</p>
-        <p><strong>Start Date:</strong> {new Date(pkg.startDate).toLocaleDateString()}</p>
-        <p><strong>End Date:</strong> {new Date(pkg.endDate).toLocaleDateString()}</p>
-        <p><strong>Total Price:</strong> ₹{pkg.totalPrice}</p>
+            {pkg.description || 'Unknown'}
+          </p>
+        )}
+        <p><strong>Source:</strong> {pkg.source?.name || 'Unknown'}</p>
+        <p><strong>Destination:</strong> {pkg.destination?.name || 'Unknown'}</p>
+        <p><strong>Start Date:</strong> {pkg.startDate ? new Date(pkg.startDate).toLocaleDateString() : 'Unknown'}</p>
+        <p><strong>End Date:</strong> {pkg.endDate ? new Date(pkg.endDate).toLocaleDateString() : 'Unknown'}</p>
+        <p><strong>Total Price:</strong> ₹{pkg.totalPrice || 'Unknown'}</p>
       </div>
       <div style={styles.formContainer}>
         <h2 style={styles.head}>Apply for Package</h2>
@@ -182,7 +183,7 @@ const ApplyPackagePage = () => {
             </div>
           ))}
           <p>Total Price: ₹{formFields.reduce((total, field) => {
-            if (field.age <=5) {
+            if (field.age <= 5) {
               return total + (pkg.totalPrice / 2);
             }
             return total + pkg.totalPrice;

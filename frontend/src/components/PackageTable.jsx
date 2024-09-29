@@ -35,12 +35,16 @@ const PackageTable = () => {
     basePrice: '',
     totalDistance: '',
     description: '',
+    newImages: [],
+    imagesToRemove: [],
+    existingImages: []
   });
   const navigate = useNavigate();
   
   const navigateTo = (path) => {
     navigate(path);
   };
+
 
   useEffect(() => {
     fetchPackages();
@@ -50,32 +54,35 @@ const PackageTable = () => {
     fetchTransports();
   }, []);
 
+
   const fetchPackages = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/packages',config);
+      const response = await axios.get('http://localhost:5000/api/admin/packages', config);
       setPackages(response.data);
     } catch (error) {
-      console.error('Error fetching packages:', error);
+      toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
     }
   };
 
   const fetchSources = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/sources',config);
+      const response = await axios.get('http://localhost:5000/api/admin/places', config);
       setSources(response.data);
     } catch (error) {
-      console.error('Error fetching sources:', error);
+      toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
     }
   };
 
   const fetchDestinations = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/destinations',config);
+      const response = await axios.get('http://localhost:5000/api/admin/places', config);
       setDestinations(response.data);
     } catch (error) {
-      console.error('Error fetching destinations:', error);
+      toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
     }
   };
+
+
   const openModal = (description) => {
     setModalDescription(description);
     setIsModalOpen(true);
@@ -85,35 +92,34 @@ const PackageTable = () => {
     setIsModalOpen(false);
     setModalDescription("");
   };
+
   const fetchHotels = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/hotels',config);
+      const response = await axios.get('http://localhost:5000/api/admin/hotels', config);
       setHotels(response.data);
     } catch (error) {
-      console.error('Error fetching hotels:', error);
+      toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
     }
   };
 
   const fetchTransports = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/transports',config);
+      const response = await axios.get('http://localhost:5000/api/admin/transports', config);
       setTransports(response.data);
     } catch (error) {
-      console.error('Error fetching transports:', error);
+      toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
     }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this package?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/admin/packages/${id}`,config);
+        await axios.delete(`http://localhost:5000/api/admin/packages/${id}`, config);
         fetchPackages(); // Refresh the package list
         toast.success('Package deleted successfully!'); // Success toast
-
       } catch (error) {
         console.error('Error deleting package:', error);
-        toast.error('Error deleting package. Please try again.'); // Error toast
-
+        toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
       }
     }
   };
@@ -125,72 +131,73 @@ const PackageTable = () => {
     const loadingToast = toast.loading('Editing package...');
 
     const updatedPackageData = { ...editFormData };
-  
-    if (updatedPackageData.image instanceof File) {
-      // Convert image to Base64 if it's a File object
-      const reader = new FileReader();
-      reader.readAsDataURL(updatedPackageData.image);
-      reader.onloadend = async () => {
-        updatedPackageData.image = reader.result;
-  
-        try {
-          const response = await axios.put(`http://localhost:5000/api/admin/packages/${editId}`, updatedPackageData,config);
-          setEditId(null); // Exit edit mode
-          fetchPackages(); // Refresh the package list
-          toast.success('Package updated successfully!'); // Success toast
 
-        } catch (error) {
-          console.error('Error updating package:', error);
-          setError('Error updating package. Please try again.');
-          toast.error('Error updating package. Please try again.'); // Error toast
+    // Convert new images to base64
+    const newImagesBase64 = await Promise.all(
+      updatedPackageData.newImages.map(file => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+        });
+      })
+    );
 
-        } finally {
-          setIsLoading(false);
-          toast.dismiss(loadingToast); // Dismiss the loading toast
 
-        }
-      };
-    } else {
-      // If image is not a File object, just send the data as is
-      try {
-        const response = await axios.put(`http://localhost:5000/api/admin/packages/${editId}`, updatedPackageData,config);
-        setEditId(null); // Exit edit mode
-        fetchPackages(); // Refresh the package list
-        toast.success('Package updated successfully!'); // Success toast
+    updatedPackageData.newImages = newImagesBase64;
 
-      } catch (error) {
-        console.error('Error updating package:', error);
-        setError('Error updating package. Please try again.');
-        toast.error('Error updating package. Please try again.'); // Error toast
-
-      } finally {
-        setIsLoading(false);
-        toast.dismiss(loadingToast); // Dismiss the loading toast
-
-      }
+    try {
+      await axios.put(`http://localhost:5000/api/admin/packages/${editId}`, updatedPackageData, config);
+      setEditId(null); // Exit edit mode
+      fetchPackages(); // Refresh the package list
+      toast.success('Package updated successfully!'); // Success toast
+    } catch (error) {
+      console.error('Error updating package:', error.response ? error.response.data : error.message);
+      setError(error.response ? error.response.data.message : 'Error updating package. Please try again.');
+      toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
+    } finally {
+      setIsLoading(false);
+      toast.dismiss(loadingToast); // Dismiss the loading toast
     }
   };
-  
+
 
   const handleEditClick = (pkg) => {
     setEditId(pkg._id);
     setEditFormData({
-      name: pkg.name,
-      sourceId: pkg.source._id,
-      destinationId: pkg.destination._id,
-      hotelId: pkg.hotel._id,
-      transportId: pkg.transports._id,
-      startDate: pkg.startDate.slice(0, 10), // Format date for input
-      endDate: pkg.endDate.slice(0, 10), // Format date for input
-      basePrice: pkg.basePrice,
-      totalDistance: pkg.totalDistance,
-      description: pkg.description || '',
+      name: pkg.name || 'Unknown',
+      sourceId: pkg.source?._id || 'Unknown',
+      destinationId: pkg.destination?._id || 'Unknown',
+      hotelId: pkg.hotel?._id || 'Unknown',
+      transportId: pkg.transports?._id || 'Unknown',
+      startDate: pkg.startDate ? pkg.startDate.slice(0, 10) : 'Unknown',
+      endDate: pkg.endDate ? pkg.endDate.slice(0, 10) : 'Unknown',
+      basePrice: pkg.basePrice || 'Unknown',
+      totalDistance: pkg.totalDistance || 'Unknown',
+      description: pkg.description || 'Unknown',
+      newImages: [],
+      imagesToRemove: [],
+      existingImages: pkg.images || []
     });
   };
 
   const handleEditFormChange = (e) => {
     setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
   };
+
+  const handleImageRemove = (publicId) => {
+    setEditFormData({
+      ...editFormData,
+      imagesToRemove: [...editFormData.imagesToRemove, publicId],
+      existingImages: editFormData.existingImages.filter(img => img.public_id !== publicId)
+    });
+  };
+
+  const handleNewImageChange = (e) => {
+    setEditFormData({ ...editFormData, newImages: [...editFormData.newImages, ...e.target.files] });
+  };
+
 
   return (
     <>
@@ -200,13 +207,13 @@ const PackageTable = () => {
         onClose={closeModal}
         description={modalDescription}
       />
-      <div>
+      <div style={styles.container}>
         <div style={styles.buttonContainer}>
-          <button style={styles.button} onClick={() => navigateTo('/addpackage')}>Add Package</button>
+          <button style={styles.addButton} onClick={() => navigateTo('/addpackage')}>Add Package</button>
         </div>
-        <h1>Package Table</h1>
+        <h1 style={styles.header}>Package Table</h1>
         {editId ? (
-          <form onSubmit={handleEditFormSubmit}>
+          <form onSubmit={handleEditFormSubmit} style={styles.form}>
             <input
               type="text"
               name="name"
@@ -214,36 +221,37 @@ const PackageTable = () => {
               onChange={handleEditFormChange}
               placeholder="Package Name"
               required
+              style={styles.input}
             />
-            <select name="sourceId" value={editFormData.sourceId} onChange={handleEditFormChange} required>
+            <select name="sourceId" value={editFormData.sourceId} onChange={handleEditFormChange} required style={styles.select}>
               <option value="">Select Source</option>
               {sources.map((source) => (
                 <option key={source._id} value={source._id}>
-                  {source.name}
+                  {source.name || 'Unknown'}
                 </option>
               ))}
             </select>
-            <select name="destinationId" value={editFormData.destinationId} onChange={handleEditFormChange} required>
+            <select name="destinationId" value={editFormData.destinationId} onChange={handleEditFormChange} required style={styles.select}>
               <option value="">Select Destination</option>
               {destinations.map((destination) => (
                 <option key={destination._id} value={destination._id}>
-                  {destination.name}
+                  {destination.name || 'Unknown'}
                 </option>
               ))}
             </select>
-            <select name="hotelId" value={editFormData.hotelId} onChange={handleEditFormChange} required>
+            <select name="hotelId" value={editFormData.hotelId} onChange={handleEditFormChange} required style={styles.select}>
               <option value="">Select Hotel</option>
               {hotels.map((hotel) => (
                 <option key={hotel._id} value={hotel._id}>
-                  {hotel.name} - {hotel.destination.name}
+                  {hotel.name || 'Unknown'} - {hotel.place?.name || 'Unknown'}
                 </option>
               ))}
             </select>
-            <select name="transportId" value={editFormData.transportId} onChange={handleEditFormChange} required>
+            <select name="transportId" value={editFormData.transportId} onChange={handleEditFormChange} required style={styles.select}>
               <option value="">Select Transport</option>
               {transports.map((transport) => (
                 <option key={transport._id} value={transport._id}>
-                  {transport.type} ({transport.from.name} - {transport.to.name})
+                  {transport.type || 'Unknown'} ({transport.from?.name || 'Unknown'} - {transport.to?.name || 'Unknown' })
                 </option>
               ))}
             </select>
@@ -254,6 +262,7 @@ const PackageTable = () => {
               onChange={handleEditFormChange}
               min={minStartDate}
               required
+              style={styles.input}
             />
             <input
               type="date"
@@ -262,6 +271,7 @@ const PackageTable = () => {
               onChange={handleEditFormChange}
               min={minStartDate}
               required
+              style={styles.input}
             />
             <input
               type="number"
@@ -270,6 +280,7 @@ const PackageTable = () => {
               onChange={handleEditFormChange}
               placeholder="Base Price"
               required
+              style={styles.input}
             />
             <input
               type="number"
@@ -278,28 +289,39 @@ const PackageTable = () => {
               onChange={handleEditFormChange}
               placeholder="Total Distance"
               required
+              style={styles.input}
             />
             <textarea
               name="description"
               value={editFormData.description}
               onChange={handleEditFormChange}
-              placeholder="Package Description"
-              required
+              placeholder="Description"
+              rows="4"
+              style={styles.textarea}
             />
+            <div>
+              {editFormData.existingImages.map((img, index) => (
+                <div key={index} style={styles.imageContainer}>
+                  <img src={img.url} alt={`Package Image ${index + 1}`} style={styles.image} />
+                  <button type="button" onClick={() => handleImageRemove(img.public_id)} style={styles.removeButton}>Remove</button>
+                </div>
+              ))}
+            </div>
             <input
-                type="file"
-                name="image"
-                onChange={(e) => {
-                    if (e.target.files[0]) {
-                    setEditFormData(prev => ({ ...prev, image: e.target.files[0] }));
-                    }
-                }}
+              type="file"
+              name="newImages"
+              multiple
+              onChange={handleNewImageChange}
+              style={styles.fileInput}
             />
-            <button type="submit">Save</button>
-            <button type="button" onClick={() => setEditId(null)}>Cancel</button>
+            <button type="submit" style={styles.submitButton} disabled={isLoading}>
+              {isLoading ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button type="button" onClick={() => setEditId(null)} style={styles.cancelButton}>Cancel</button>
+            {error && <div style={styles.error}>{error}</div>}
           </form>
         ) : (
-          <table border="1" style={{ width: '100%', textAlign: 'left' }}>
+          <table style={styles.table}>
             <thead>
               <tr>
                 <th>Name</th>
@@ -310,58 +332,53 @@ const PackageTable = () => {
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>Base Price</th>
-                <th>Nights</th>
                 <th>Total Distance</th>
-                <th>Total Price</th>
                 <th>Description</th>
-                <th>View Image</th>
-                <th>Edit</th>
-                <th>Delete</th>
+                <th>Image</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {packages.map((pkg) => (
                 <tr key={pkg._id}>
-                  <td>{pkg.name}</td>
-                  <td>{pkg.source.name}</td>
-                  <td>{pkg.destination.name}</td>
-                  <td>{pkg.hotel.name}</td>
-                  <td>{pkg.transports.type} ({pkg.transports.from.name} - {pkg.transports.to.name})</td>
-                  <td>{new Date(pkg.startDate).toLocaleDateString()}</td>
-                  <td>{new Date(pkg.endDate).toLocaleDateString()}</td>
-                  <td>{pkg.basePrice}</td>
-                  <td>{pkg.nights}</td>
-                  <td>{pkg.totalDistance}</td>
-                  <td>{pkg.totalPrice}</td>
+                  <td>{pkg.name || 'Unknown'}</td>
+                  <td>{pkg.source?.name || 'Unknown'}</td>
+                  <td>{pkg.destination?.name || 'Unknown'}</td>
+                  <td>{pkg.hotel?.name || 'Unknown'}</td>
+                  <td>{pkg.transports?.type || 'Unknown'}</td>
+                  <td>{pkg.startDate ? new Date(pkg.startDate).toLocaleDateString() : 'Unknown'}</td>
+                  <td>{pkg.endDate ? new Date(pkg.endDate).toLocaleDateString() : 'Unknown'}</td>
+                  <td>{pkg.basePrice || 'Unknown'}</td>
+                  <td>{pkg.totalDistance || 'Unknown'}</td>
+                 <td>
+                    {pkg.description ? (
+                      <button onClick={() => openModal(pkg.description)} style={styles.viewButton}>
+                        View Description
+                      </button>
+                    ) : (
+                      'No Description'
+                    )}
+                 </td>
                   <td>
-                  {pkg.description ? (
-                    <button onClick={() => openModal(pkg.description)}>
-                      View Description
-                    </button>
-                  ) : (
-                    'No Description'
-                  )}
-                </td>
-                  <td>
-                  <td>
-                        {pkg.image ? (
-                            <a
-                            href={pkg.image.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            >
-                            View Image
-                            </a>
-                        ) : (
-                            'No Image'
-                        )}
-                    </td>
-        </td>
-                  <td>
-                    <button onClick={() => handleEditClick(pkg)}>Edit</button>
+                    {pkg.images && pkg.images.length > 0 ? (
+                      pkg.images.map((img, index) => (
+                        <a
+                          key={index}
+                          href={img.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ display: 'block', marginBottom: '5px' }}
+                        >
+                          View Image {index + 1}
+                        </a>
+                      ))
+                    ) : (
+                      'No Images'
+                    )}
                   </td>
                   <td>
-                    <button onClick={() => handleDelete(pkg._id)}>Delete</button>
+                    <button onClick={() => handleEditClick(pkg)} style={styles.editButton}>Edit</button>
+                    <button onClick={() => handleDelete(pkg._id)} style={styles.deleteButton}>Delete</button>
                   </td>
                 </tr>
               ))}
@@ -373,23 +390,145 @@ const PackageTable = () => {
   );
 };
 
+
 const styles = {
+  container: {
+    padding: '20px',
+    backgroundColor: '#f9f9f9',
+    minHeight: '92vh'
+  },
   buttonContainer: {
+    marginBottom: '20px'
+  },
+  addButton: {
+    backgroundColor: '#007bff',
+    color: '#fff',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '16px',
+  },
+  header: {
+    textAlign: 'center',
+    marginBottom: '20px',
+    fontSize: '24px',
+    color: '#333'
+  },
+  form: {
     display: 'flex',
     flexDirection: 'column',
-    alignItems: 'center',
-    gap: '20px',
+    gap: '10px',
+    maxWidth: '600px',
+    margin: '0 auto',
+    padding: '20px',
+    backgroundColor: '#fff',
+    borderRadius: '8px',
+    boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)'
   },
-  button: {
-    padding: '10px 20px',
-    fontSize: '16px',
-    cursor: 'pointer',
-    border: 'none',
+  input: {
+    padding: '10px',
     borderRadius: '5px',
-    backgroundColor: '#007BFF',
-    color: 'white',
-    transition: 'background-color 0.3s',
+    border: '1px solid #ccc',
+    fontSize: '16px'
   },
+  select: {
+    padding: '10px',
+    borderRadius: '5px',
+    border: '1px solid #ccc',
+    fontSize: '16px'
+  },
+  textarea: {
+    padding: '10px',
+    borderRadius: '5px',
+    border: '1px solid #ccc',
+    fontSize: '16px'
+  },
+  fileInput: {
+    border: 'none',
+    padding: '10px',
+    fontSize: '16px'
+  },
+  submitButton: {
+    backgroundColor: '#28a745',
+    color: '#fff',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '16px'
+  },
+  cancelButton: {
+    backgroundColor: '#dc3545',
+    color: '#fff',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    fontSize: '16px'
+  },
+  error: {
+    color: '#dc3545',
+    marginTop: '10px'
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    marginTop: '20px'
+  },
+  tableHeader: {
+    backgroundColor: '#007bff',
+    color: '#fff',
+    padding: '10px'
+  },
+  tableCell: {
+    padding: '10px',
+    border: '1px solid #ddd'
+  },
+  viewButton: {
+    backgroundColor: '#17a2b8',
+    color: '#fff',
+    border: 'none',
+    padding: '5px 10px',
+    borderRadius: '5px',
+    cursor: 'pointer'
+  },
+  editButton: {
+    backgroundColor: '#ffc107',
+    color: '#fff',
+    border: 'none',
+    padding: '5px 10px',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    marginRight: '5px'
+  },
+  deleteButton: {
+    backgroundColor: '#dc3545',
+    color: '#fff',
+    border: 'none',
+    padding: '5px 10px',
+    borderRadius: '5px',
+    cursor: 'pointer'
+  },
+  imageContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '10px'
+  },
+  image: {
+    width: '100px',
+    height: 'auto',
+    marginRight: '10px'
+  },
+  removeButton: {
+    backgroundColor: '#dc3545',
+    color: '#fff',
+    border: 'none',
+    padding: '5px 10px',
+    borderRadius: '5px',
+    cursor: 'pointer'
+  }
 };
+
 
 export default PackageTable;

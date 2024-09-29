@@ -1,73 +1,121 @@
-import  { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import NavbarAdmin from './NavbarAdmin';
 import toast from 'react-hot-toast';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, TextField, Typography } from '@mui/material';
+
 const AddDestinationForm = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [message, setMessage] = useState('');
+  const [destinations, setDestinations] = useState([]);
   const navigate = useNavigate();
-  
-  const handleSubmit = async (e) => {
-    const loadingToast = toast.loading('Creating destination...');
 
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem('token');  // Retrieve token from localStorage
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}` // Send token in Authorization header
+  useEffect(() => {
+    // Fetch the destinations to display in the table
+    const fetchDestinations = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const config = {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        };
+        const response = await axios.get('http://localhost:5000/api/admin/places', config);
+        setDestinations(response.data);
+      } catch (error) {
+        console.error('Failed to fetch places:', error);
       }
     };
 
-      const response = await axios.post('http://localhost:5000/api/admin/destinations', { name, description },config);
-      setMessage('Destination added successfully!');
+    fetchDestinations();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    const loadingToast = toast.loading('Creating places...');
+    e.preventDefault();
+
+    try {
+      const token = localStorage.getItem('token');
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      await axios.post('http://localhost:5000/api/admin/places', { name, description }, config);
+      setMessage('Places added successfully!');
       setName('');
       setDescription('');
-      toast.success('Destination created successfully!');
-
+      toast.success('Place created successfully!');
+      // Optionally refetch destinations to update the list
+      const response = await axios.get('http://localhost:5000/api/admin/places', config);
+      setDestinations(response.data);
     } catch (error) {
-      setMessage('Failed to add destination');
+      setMessage('Failed to add place');
       console.error(error);
-      toast.error('Error creating destination. Please try again.');
-
-    }
-    finally {
-      toast.dismiss(loadingToast); // Dismiss the loading toast
+      toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
+    } finally {
+      toast.dismiss(loadingToast);
     }
   };
 
   return (
-   <>
-    <NavbarAdmin></NavbarAdmin>
-    <div>
-      <button onClick={() => navigate(-1)}>Back</button>
-      <h2 style={{fontSize:"25px"}}>Add Destination</h2>
-      {message && <p style={{color:"black"}}>{message}</p>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Name</label>
-          <input
-            type="text"
-            style={{ border: "2px solid black" }}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Description</label>
-          <textarea
-          style={{ border: "2px solid black" }}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-        <button type="submit" style={{backgroundColor:"black",color:"white"}}>Add Destination</button>
-      </form>
-    </div>
-   </>
+    <>
+      <NavbarAdmin />
+      <div style={{ padding: '20px' }}>
+        <Button variant="contained" onClick={() => navigate(-1)} style={{ marginBottom: '20px' }}>
+          Back
+        </Button>
+        <Typography variant="h4" gutterBottom>
+          Add Place
+        </Typography>
+        <form onSubmit={handleSubmit} style={{ marginBottom: '20px' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <TextField
+              label="Name"
+              variant="outlined"
+              fullWidth
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+          <div style={{ marginBottom: '16px' }}>
+            <TextField
+              label="Description"
+              variant="outlined"
+              multiline
+              rows={4}
+              fullWidth
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+          <Button type="submit" variant="contained" color="primary">
+            Add Place
+          </Button>
+        </form>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Description</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {destinations.map((destination) => (
+                <TableRow key={destination._id}>
+                  <TableCell>{destination.name || 'Unknown'}</TableCell>
+                  <TableCell>{destination.description || 'No description'}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </div>
+    </>
   );
 };
 

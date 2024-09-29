@@ -26,10 +26,10 @@ function NavbarAdmin() {
         <>
             <Navbar bg="dark" data-bs-theme="dark">
                 <Container>
-                    <Navbar.Brand onClick={() => handleNavigation('/admin-dashboard')}>Travel</Navbar.Brand>
+                    <Navbar.Brand onClick={() => handleNavigation('/admin-dashboard')} style={{cursor: 'pointer'}}>Travel</Navbar.Brand>
                     <Nav className="me-auto">
-                        <Nav.Link onClick={() => handleNavigation('/destination')}>Destination</Nav.Link>
-                        <Nav.Link onClick={() => handleNavigation('/source')}>Source</Nav.Link>
+                        <Nav.Link onClick={() => handleNavigation('/destination')}>Place</Nav.Link>
+                        {/* <Nav.Link onClick={() => handleNavigation('/source')}>Source</Nav.Link> */}
                         <Nav.Link onClick={() => handleNavigation('/hotel')}>Hotel</Nav.Link>
                         <Nav.Link onClick={() => handleNavigation('/transport')}>Transport</Nav.Link>
                         <Nav.Link onClick={() => handleNavigation('/package')}>Package</Nav.Link>

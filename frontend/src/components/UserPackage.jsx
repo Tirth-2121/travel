@@ -20,11 +20,11 @@ const UserPackage = () => {
         const fetchPackageDetails = async () => {
             try {
                 // Fetch package details
-                const response = await axios.get(`http://localhost:5000/api/admin/packages/${packageId}`,config);
+                const response = await axios.get(`http://localhost:5000/api/admin/packages/${packageId}`, config);
                 setPackageDetails(response.data);
                 
                 // Fetch applied users separately
-                const usersResponse = await axios.get(`http://localhost:5000/api/admin/packages/${packageId}/applied-users`,config);
+                const usersResponse = await axios.get(`http://localhost:5000/api/admin/packages/${packageId}/applied-users`, config);
                 setAppliedUsers(usersResponse.data);
                 
                 setLoading(false);
@@ -51,7 +51,7 @@ const UserPackage = () => {
             <div style={styles.container}>
                 <div style={styles.packageDetails}>
                     <h2 style={styles.font_head}>Package Details</h2>
-                    <h3 style={styles.font_head1}>{packageDetails.name}</h3>
+                    <h3 style={styles.font_head1}>{packageDetails.name || 'Unknown'}</h3>
                 </div>
                 <div style={styles.userContainer}>
                     <strong>Applied Users</strong>
@@ -62,11 +62,11 @@ const UserPackage = () => {
                             {appliedUsers.map((user, index) => (
                                 <li key={user._id} style={styles.userItem}>
                                     <div><strong>User {index + 1}:</strong></div>
-                                    <div><strong>Name:</strong> {user.name}</div>
-                                    <div><strong>Mobile Number:</strong> {user.mobileNumber}</div>
-                                    <div><strong>Age(s):</strong> {user.age}</div>
-                                    <div><strong>Email:</strong> {user.email}</div>
-                                    <div><strong>Payment Status:</strong> {user.paymentStatus}</div>
+                                    <div><strong>Name:</strong> {user.name || 'Unknown'}</div>
+                                    <div><strong>Mobile Number:</strong> {user.mobileNumber || 'Unknown'}</div>
+                                    <div><strong>Age(s):</strong> {user.age || 'Unknown'}</div>
+                                    <div><strong>Email:</strong> {user.email || 'Unknown'}</div>
+                                    <div><strong>Payment Status:</strong> {user.paymentStatus || 'Unknown'}</div>
                                     {user.paymentStatus === 'failed' || user.paymentStatus === 'pending' ? (
                                         <button 
                                             style={styles.callButton}

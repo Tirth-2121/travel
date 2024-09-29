@@ -19,7 +19,7 @@ const PackageDataFetcher = () => {
     setIsLoading(true);
     setError('');
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/packages',config); // Adjust the endpoint as needed
+      const response = await axios.get('http://localhost:5000/api/admin/packages', config); // Adjust the endpoint as needed
       setPackages(response.data);
     } catch (error) {
       setError('Failed to fetch packages');
@@ -30,41 +30,41 @@ const PackageDataFetcher = () => {
   };
 
   return (
-   <>
-    <NavbarAdmin></NavbarAdmin>
-    <div>
-      <button onClick={() => navigate(-1)}>Back</button>
-      <h2 style={{fontSize:"25px"}}>Package Data</h2>
-      <button onClick={fetchPackages} style={{backgroundColor:"black",color:"white"}} disabled={isLoading}>
-        {isLoading ? 'Loading...' : 'Get Packages'}
-      </button>
-      {error && <p className="error">{error}</p>}
-      {packages.length > 0 && (
-        <ul>
-          {packages.map(pkg => (
-            <li key={pkg._id}>
-              <strong>Package Name:</strong> {pkg.name}<br />
-              <strong>Source:</strong> {pkg.source.name}<br />
-              <strong>Destination:</strong> {pkg.destination.name}<br />
-              <strong>Hotel:</strong> {pkg.hotel.name}<br />
-              <strong>Transport: </strong> 
+    <>
+      <NavbarAdmin></NavbarAdmin>
+      <div>
+        <button onClick={() => navigate(-1)}>Back</button>
+        <h2 style={{ fontSize: "25px" }}>Package Data</h2>
+        <button onClick={fetchPackages} style={{ backgroundColor: "black", color: "white" }} disabled={isLoading}>
+          {isLoading ? 'Loading...' : 'Get Packages'}
+        </button>
+        {error && <p className="error">{error}</p>}
+        {packages.length > 0 && (
+          <ul>
+            {packages.map(pkg => (
+              <li key={pkg._id}>
+                <strong>Package Name:</strong> {pkg.name || 'Unknown'}<br />
+                <strong>Source:</strong> {pkg.source?.name || 'Unknown'}<br />
+                <strong>Destination:</strong> {pkg.destination?.name || 'Unknown'}<br />
+                <strong>Hotel:</strong> {pkg.hotel?.name || 'Unknown'}<br />
+                <strong>Transport: </strong>
                 {pkg.transports ? (
-                <span>
-                    {pkg.transports.type} from {pkg.transports.from.name} to {pkg.transports.to.name} - ₹{pkg.transports.price}
-                </span>
-                    ) : (
-                    'No transport available'
-                    )}<br />
-              <strong>Start Date:</strong> {new Date(pkg.startDate).toLocaleDateString()}<br />
-              <strong>End Date:</strong> {new Date(pkg.endDate).toLocaleDateString()}<br />
-              <strong>Total Price:</strong> ₹{pkg.totalPrice}<br />
-              <strong>Total Distance:</strong> {pkg.totalDistance} km
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-   </>
+                  <span>
+                    {pkg.transports.type || 'Unknown'} from {pkg.transports.from?.name || 'Unknown'} to {pkg.transports.to?.name || 'Unknown'} - ₹{pkg.transports.price || 'Unknown'}
+                  </span>
+                ) : (
+                  'No transport available'
+                )}<br />
+                <strong>Start Date:</strong> {pkg.startDate ? new Date(pkg.startDate).toLocaleDateString() : 'Unknown'}<br />
+                <strong>End Date:</strong> {pkg.endDate ? new Date(pkg.endDate).toLocaleDateString() : 'Unknown'}<br />
+                <strong>Total Price:</strong> ₹{pkg.totalPrice || 'Unknown'}<br />
+                <strong>Total Distance:</strong> {pkg.totalDistance ? `${pkg.totalDistance} km` : 'Unknown'}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </>
   );
 };
 

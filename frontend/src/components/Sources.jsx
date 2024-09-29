@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import NavbarAdmin from './NavbarAdmin';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
+import NavbarAdmin from './NavbarAdmin';
 
 const SourceTable = () => {
   const token = localStorage.getItem('token');  // Retrieve token from localStorage
@@ -13,12 +14,8 @@ const SourceTable = () => {
   };
   const [sources, setSources] = useState([]);
   const [editId, setEditId] = useState(null);
-  const [editFormData, setEditFormData] = useState({ name: ''});
+  const [editFormData, setEditFormData] = useState({ name: '' });
   const navigate = useNavigate();
-
-  const navigateTo = (path) => {
-    navigate(path);
-  };
 
   useEffect(() => {
     fetchSources();
@@ -27,10 +24,11 @@ const SourceTable = () => {
   // Fetch all sources
   const fetchSources = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/admin/sources',config); // API route for sources
+      const response = await axios.get('http://localhost:5000/api/admin/sources', config); // API route for sources
       setSources(response.data);
     } catch (error) {
       console.error('Error fetching sources:', error);
+      toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
     }
   };
 
@@ -39,13 +37,12 @@ const SourceTable = () => {
     const confirmDelete = window.confirm("Are you sure you want to delete this source?");
     if (confirmDelete) {
       try {
-        await axios.delete(`http://localhost:5000/api/admin/sources/${id}`,config);
+        await axios.delete(`http://localhost:5000/api/admin/sources/${id}`, config);
         fetchSources(); // Refresh the list after deletion
-        toast.success('Source deleted successfully!'); // Success toast
+        toast.success('Source deleted successfully!');
       } catch (error) {
         console.error('Error deleting source:', error);
-        toast.error('Error deleting source. Please try again.'); // Error toast
-
+        toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
       }
     }
   };
@@ -53,22 +50,19 @@ const SourceTable = () => {
   // Handle edit form submit
   const handleEditFormSubmit = async (event) => {
     event.preventDefault();
-    const loadingToast = toast.loading('Editing source...');
+    const loadingToast = toast.loading('Updating source...');
 
     try {
-      await axios.put(`http://localhost:5000/api/admin/sources/${editId}`, editFormData,config);
+      await axios.put(`http://localhost:5000/api/admin/sources/${editId}`, editFormData, config);
       setEditId(null); // Exit edit mode
       fetchSources(); // Refresh the list
-      toast.success('Source updated successfully!'); // Success toast
-
+      toast.success('Source updated successfully!');
     } catch (error) {
       console.error('Error updating source:', error);
-      toast.error('Error updating source. Please try again.'); // Error toast
-
+      toast.error(error.response ? error.response.data.message : 'Please try again.'); // Error toast
+    } finally {
+      toast.dismiss(loadingToast); // Dismiss the loading toast
     }
-    finally {
-        toast.dismiss(loadingToast); // Dismiss the loading toast
-      }
   };
 
   // Start editing a source
@@ -85,46 +79,61 @@ const SourceTable = () => {
   return (
     <>
       <NavbarAdmin />
-      <div>
-        <div style={styles.buttonContainer}>
-          <button style={styles.button} onClick={() => navigateTo('/addsource')}>Add Source</button>
-        </div>
-        <h1>Source Table</h1>
+      <div style={styles.container}>
+        <Button variant="contained" color="primary" onClick={() => navigate('/addsource')} style={styles.button}>
+          Add Source
+        </Button>
+        <Typography variant="h4" gutterBottom>
+          Source Table
+        </Typography>
         {editId ? (
-          <form onSubmit={handleEditFormSubmit}>
-            <input
-              type="text"
+          <form onSubmit={handleEditFormSubmit} style={styles.form}>
+            <TextField
+              label="Name"
               name="name"
               value={editFormData.name}
               onChange={handleEditFormChange}
               required
+              variant="outlined"
+              fullWidth
+              style={styles.textField}
             />
-            <button type="submit">Save</button>
-            <button onClick={() => setEditId(null)}>Cancel</button>
+            <Button type="submit" variant="contained" color="primary" style={styles.submitButton}>
+              Save
+            </Button>
+            <Button onClick={() => setEditId(null)} variant="outlined" color="secondary">
+              Cancel
+            </Button>
           </form>
         ) : (
-          <table border="1" style={{ width: '100%', textAlign: 'left' }}>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Edit</th>
-                <th>Delete</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sources.map((source) => (
-                <tr key={source._id}>
-                  <td>{source.name}</td>
-                  <td>
-                    <button onClick={() => handleEditClick(source)}>Edit</button>
-                  </td>
-                  <td>
-                    <button onClick={() => handleDelete(source._id)}>Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <TableContainer component={Paper} style={styles.tableContainer}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Edit</TableCell>
+                  <TableCell>Delete</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {sources.map((source) => (
+                  <TableRow key={source._id}>
+                    <TableCell>{source.name}</TableCell>
+                    <TableCell>
+                      <Button onClick={() => handleEditClick(source)} variant="outlined" color="primary">
+                        Edit
+                      </Button>
+                    </TableCell>
+                    <TableCell>
+                      <Button onClick={() => handleDelete(source._id)} variant="outlined" color="error">
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
       </div>
     </>
@@ -132,28 +141,27 @@ const SourceTable = () => {
 };
 
 const styles = {
-  heading: {
-    fontSize: "32px",
-  },
   container: {
-    textAlign: 'center',
-    padding: '50px',
-  },
-  buttonContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '20px',
+    padding: '20px',
   },
   button: {
-    padding: '10px 20px',
-    fontSize: '16px',
-    cursor: 'pointer',
-    border: 'none',
-    borderRadius: '5px',
-    backgroundColor: '#007BFF',
-    color: 'white',
-    transition: 'background-color 0.3s',
+    marginBottom: '20px',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
+    marginBottom: '20px',
+  },
+  textField: {
+    marginBottom: '10px',
+  },
+  submitButton: {
+    marginRight: '10px',
+  },
+  tableContainer: {
+    maxWidth: '100%',
+    marginTop: '20px',
   },
 };
 
