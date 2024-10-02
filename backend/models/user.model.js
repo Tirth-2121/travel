@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema(
 			type: Boolean,
 			default: false,
 		},
+		favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Package' }],
 		resetPasswordToken: String,
 		resetPasswordExpiresAt: Date,
 		verificationToken: String,

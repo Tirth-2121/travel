@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
 import Input from "../components/Input";
 import { Loader, Lock, Mail, User } from "lucide-react";
-import { useState } from "react";
+import { useState , useEffect} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
 import { useAuthStore } from "../store/authStore";
+import toast, { Toaster } from "react-hot-toast";
 
 const SignUpPage = () => {
 	const [name, setName] = useState("");
@@ -20,14 +21,22 @@ const SignUpPage = () => {
 		try {
 			const role = "user"
 			await signup(email, password, name,role);
+			toast.success("Account created successfully! Please verify your email.");
 			navigate("/verify-email");
 		} catch (error) {
 			console.log(error);
+			// toast.error(error.message || "Error signing up");
 		}
 	};
+	useEffect(() => {
+		if (error) {
+			toast.error(error);
+		}
+	}, [error]);
 	return (
 		<div className="min-h-screen bg-gradient-to-br
     flex items-center justify-center relative overflow-hidden">
+			<Toaster />
 			<motion.div
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
@@ -62,7 +71,7 @@ const SignUpPage = () => {
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
 					/>
-					{error && <p className='text-red-500 font-semibold mt-2'>{error}</p>}
+					{/* {error && <p className='text-red-500 font-semibold mt-2'>{error}</p>} */}
 					<PasswordStrengthMeter password={password} />
 
 					<motion.button

@@ -3,10 +3,13 @@ import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import NavbarUser from '../components/NavbarUser';
-import { Card, CardMedia, CardContent, Typography, Button, Stack, Divider, CardActions } from '@mui/material';
+import { Card, CardMedia, CardContent, Typography, Button, Stack, Divider, IconButton, CardActions, TextField } from '@mui/material';
+import { Favorite, FavoriteBorder } from '@mui/icons-material';
 
 const DashboardPage1 = () => {
   const token = localStorage.getItem('token');  // Retrieve token from localStorage
+  const user = JSON.parse(localStorage.getItem('user')); // Retrieve user ID from localStorage
+  const userId = user._id;
   const config = {
     headers: {
       Authorization: `Bearer ${token}` // Send token in Authorization header
@@ -16,7 +19,9 @@ const DashboardPage1 = () => {
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const { logout } = useAuthStore();
+  const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
     const fetchPackages = async () => {
@@ -32,6 +37,35 @@ const DashboardPage1 = () => {
 
     fetchPackages();
   }, []);
+
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/admin/users/${userId}/favorites`, config);
+        setFavorites(response.data);
+      } catch (err) {
+        console.error('Failed to fetch favorite packages', err);
+      }
+    };
+
+    fetchFavorites();
+  }, [userId, config]);
+
+  const handleFavoriteToggle = async (pkg) => {
+    try {
+      if (favorites.some(fav => fav._id === pkg._id)) {
+        // console.log(`Removing package ${pkg._id} from favorites`);
+        await axios.delete(`http://localhost:5000/api/admin/users/${userId}/favorites/${pkg._id}`, config);
+        setFavorites(favorites.filter(fav => fav._id !== pkg._id));
+      } else {
+        // console.log(`Adding package ${pkg._id} to favorites`);
+        await axios.post(`http://localhost:5000/api/admin/users/${userId}/favorites/${pkg._id}`, {}, config);
+        setFavorites([...favorites, pkg]);
+      }
+    } catch (err) {
+      console.error('Failed to toggle favorite package', err);
+    }
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -54,11 +88,24 @@ const DashboardPage1 = () => {
     return today > deadline;
   };
 
+  const filteredPackages = packages.filter(pkg =>
+    pkg.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <>
       <NavbarUser />
+      <div style={styles.searchContainer}>
+        <TextField
+          label="Search Packages"
+          variant="outlined"
+          fullWidth
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
       <div style={styles.gridContainer}>
-        {packages.map((pkg, index) => (
+        {filteredPackages.map((pkg, index) => (
           <Card key={index} sx={{ maxWidth: 345, margin: '20px', borderRadius: '12px', boxShadow: 3 }}>
             {pkg.images && (
               <CardMedia
@@ -105,6 +152,13 @@ const DashboardPage1 = () => {
               >
                 {isApplyButtonDisabled(pkg.startDate) ? 'Registration Closed' : 'Apply'}
               </Button>
+              <IconButton onClick={() => handleFavoriteToggle(pkg)}>
+                {favorites.some(fav => fav._id === pkg._id) ? (
+                  <Favorite sx={{ color: 'red' }} />
+                ) : (
+                  <FavoriteBorder sx={{ color: 'black' }} />
+                )}
+              </IconButton>
             </CardActions>
           </Card>
         ))}
@@ -114,6 +168,11 @@ const DashboardPage1 = () => {
 };
 
 const styles = {
+  searchContainer: {
+    padding: '20px',
+    display: 'flex',
+    justifyContent: 'center',
+  },
   gridContainer: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',

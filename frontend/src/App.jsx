@@ -32,6 +32,13 @@ import ApplyPackagePage from "./pages/ApplyPackagePage";
 import MyTripsPage from "./pages/MyTripsPage";
 import AppliedPackage from "./components/AppliedPackage";
 import UserPackage from "./components/UserPackage";
+import FavoritePackagesPage from "./pages/FavoritePackagesPage";
+import GalleryPage from "./pages/GalleryPage";
+import Contactus from "./pages/Contactus";
+import ProfilePage from "./pages/ProfilePage";
+import AdminGalleryPage from "./components/AdminGalleryPage";
+import AddGallery from "./components/AddGallery";
+import AdminContactUs from "./components/AdminContactUs";
 // protect routes that require authentication
 const ProtectedRoute = ({ children,requiredRole }) => {
 	const { isAuthenticated, user } = useAuthStore();
@@ -89,6 +96,62 @@ function App() {
 					element={
 						<ProtectedRoute requiredRole="user">
 							<DashboardPage1 />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path='/favorite-packages'
+					element={
+						<ProtectedRoute requiredRole="user">
+							<FavoritePackagesPage />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path='/gallery'
+					element={
+						<ProtectedRoute requiredRole="user">
+							<GalleryPage />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path='/admin-contact'
+					element={
+						<ProtectedRoute requiredRole="admin">
+							<AdminContactUs />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path='/add-photo'
+					element={
+						<ProtectedRoute requiredRole="admin">
+							<AddGallery />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path='/admin-gallery'
+					element={
+						<ProtectedRoute requiredRole="admin">
+							<AdminGalleryPage />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path='/profile'
+					element={
+						<ProtectedRoute requiredRole="user">
+							<ProfilePage />
+						</ProtectedRoute>
+					}
+				/>
+				<Route
+					path='/contact-us'
+					element={
+						<ProtectedRoute requiredRole="user">
+							<Contactus />
 						</ProtectedRoute>
 					}
 				/>

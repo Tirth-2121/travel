@@ -97,3 +97,30 @@ export const sendPaymentConfirmationEmail = async (email, packageName, totalCost
         throw new Error(`Error sending payment confirmation email: ${error}`);
     }
 };
+
+export const sendContactUsEmail = async (email, name) => {
+    const mailOptions = {
+        from: `"${sender.name}" <${sender.email}>`,
+        to: email,
+        subject: "Contact Form Submission",
+        html: `<p>Thank you for contacting us, ${name}. We have received your message and will get back to you shortly.</p>`,
+    };
+
+    try {
+        const response = await transporter.sendMail(mailOptions);
+        console.log("Contact us email sent successfully", response);
+    } catch (error) {
+        console.error('Error sending contact us email:', error);
+        throw new Error(`Error sending contact us email: ${error}`);
+    }
+};
+export const sendReplyEmail = async (to, subject, message) => {
+    const mailOptions = {
+      from: `"${sender.name}" <${sender.email}>`,
+      to,
+      subject,
+      text: message,
+    };
+  
+    await transporter.sendMail(mailOptions);
+  };

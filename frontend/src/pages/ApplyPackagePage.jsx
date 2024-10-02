@@ -4,6 +4,8 @@ import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 import NavbarUser from '../components/NavbarUser';
 import toast from 'react-hot-toast';
+import { Carousel } from 'react-responsive-carousel';
+import 'react-responsive-carousel/lib/styles/carousel.min.css';
 
 const ApplyPackagePage = () => {
   const token = localStorage.getItem('token');  // Retrieve token from localStorage
@@ -117,9 +119,15 @@ const ApplyPackagePage = () => {
       <div style={styles.container}>
       <div style={styles.packageDetails}>
         <h2 style={styles.head}>Package Details</h2>
-        {pkg.images && pkg.images.map((image, index) => (
-          <img key={index} src={image.url} alt={`${pkg.name || 'Unknown'} ${index + 1}`} style={styles.image} />
-        ))}
+        {pkg.images && (
+            <Carousel showThumbs={false} dynamicHeight>
+              {pkg.images.map((image, index) => (
+                <div key={index}>
+                  <img src={image.url} alt={`${pkg.name || 'Unknown'} ${index + 1}`} style={styles.image} />
+                </div>
+              ))}
+            </Carousel>
+          )}
         <h3 style={styles.head}>{pkg.name || 'Unknown'}</h3>
         {pkg.description && (
           <p style={styles.description}>
@@ -132,6 +140,13 @@ const ApplyPackagePage = () => {
         <p><strong>Start Date:</strong> {pkg.startDate ? new Date(pkg.startDate).toLocaleDateString() : 'Unknown'}</p>
         <p><strong>End Date:</strong> {pkg.endDate ? new Date(pkg.endDate).toLocaleDateString() : 'Unknown'}</p>
         <p><strong>Total Price:</strong> ₹{pkg.totalPrice || 'Unknown'}</p>
+        
+        <p><strong>InstructionPDF:</strong></p>
+        {pkg.pdf && (
+            <button onClick={() => window.open(pkg.pdf.url, '_blank')} style={styles.button}>
+              View PDF
+            </button>
+          )}
       </div>
       <div style={styles.formContainer}>
         <h2 style={styles.head}>Apply for Package</h2>

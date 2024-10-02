@@ -23,6 +23,8 @@ const PackageTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalDescription, setModalDescription] = useState("");
   const today = new Date();
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [newPdf, setNewPdf] = useState(null);
   const minStartDate = new Date(today.setDate(today.getDate() + 30)).toISOString().split('T')[0];
   const [editFormData, setEditFormData] = useState({
     name: '',
@@ -143,10 +145,22 @@ const PackageTable = () => {
         });
       })
     );
-
-
     updatedPackageData.newImages = newImagesBase64;
 
+    // Convert new PDF to base64
+    let newPdfBase64 = null;
+    if (newPdf) {
+      newPdfBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(newPdf);
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+      });
+    }
+
+    if (newPdfBase64) {
+      updatedPackageData.pdf = newPdfBase64;
+    }
     try {
       await axios.put(`http://localhost:5000/api/admin/packages/${editId}`, updatedPackageData, config);
       setEditId(null); // Exit edit mode
@@ -180,6 +194,7 @@ const PackageTable = () => {
       imagesToRemove: [],
       existingImages: pkg.images || []
     });
+    setPdfUrl(pkg.pdf?.url || ''); // Set the PDF URL
   };
 
   const handleEditFormChange = (e) => {
@@ -198,7 +213,9 @@ const PackageTable = () => {
     setEditFormData({ ...editFormData, newImages: [...editFormData.newImages, ...e.target.files] });
   };
 
-
+  const handleNewPdfChange = (e) => {
+    setNewPdf(e.target.files[0]);
+  };
   return (
     <>
       <NavbarAdmin />
@@ -307,6 +324,8 @@ const PackageTable = () => {
                 </div>
               ))}
             </div>
+            <div style={styles.inlineContainer}>
+            <label htmlFor="newImages" style={styles.inlineLabel}>Upload Images</label>
             <input
               type="file"
               name="newImages"
@@ -314,6 +333,25 @@ const PackageTable = () => {
               onChange={handleNewImageChange}
               style={styles.fileInput}
             />
+            </div>
+            {pdfUrl && (
+              <div>
+                <a href={pdfUrl} target="_blank" rel="noopener noreferrer" style={styles.viewButton}>
+                  View PDF
+                </a>
+              </div>
+            )}
+            <div style={styles.inlineContainer}>
+              <label htmlFor="newPdf" style={styles.inlineLabel}>Upload PDF</label>
+              <input
+                type="file"
+                id="newPdf"
+                name="newPdf"
+                accept="application/pdf"
+                onChange={handleNewPdfChange}
+                style={styles.inlineFileInput}
+              />
+            </div>
             <button type="submit" style={styles.submitButton} disabled={isLoading}>
               {isLoading ? 'Saving...' : 'Save Changes'}
             </button>
@@ -335,6 +373,7 @@ const PackageTable = () => {
                 <th>Total Distance</th>
                 <th>Description</th>
                 <th>Image</th>
+                <th>PDF</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -377,6 +416,20 @@ const PackageTable = () => {
                     )}
                   </td>
                   <td>
+                    {pkg.pdf ? (
+                      <a
+                        href={pkg.pdf.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={styles.viewButton}
+                      >
+                        View PDF
+                      </a>
+                    ) : (
+                      'No PDF'
+                    )}
+                  </td>
+                  <td>
                     <button onClick={() => handleEditClick(pkg)} style={styles.editButton}>Edit</button>
                     <button onClick={() => handleDelete(pkg._id)} style={styles.deleteButton}>Delete</button>
                   </td>
@@ -396,6 +449,20 @@ const styles = {
     padding: '20px',
     backgroundColor: '#f9f9f9',
     minHeight: '92vh'
+  },
+  inlineContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px', // Adjust the gap as needed
+  },
+  inlineLabel: {
+    fontSize: '16px',
+    color: '#333',
+  },
+  inlineFileInput: {
+    border: 'none',
+    padding: '10px',
+    fontSize: '16px',
   },
   buttonContainer: {
     marginBottom: '20px'

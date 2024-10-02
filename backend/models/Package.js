@@ -14,6 +14,10 @@ const packageSchema = new mongoose.Schema({
       url: { type: String, required: true },        // Cloudinary URL for each image
     },
   ],
+  pdf: {
+    public_id: { type: String, required: false },  // Cloudinary public ID for the PDF
+    url: { type: String, required: false },        // Cloudinary URL for the PDF
+  },
   basePrice: { type: Number, required: true },
   totalDistance: { type: Number, required: true },
   totalPrice: { type: Number, required: true },

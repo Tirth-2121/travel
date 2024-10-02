@@ -17,6 +17,7 @@ const AddPackage = () => {
     basePrice: '',
     totalDistance: '',
     images: [], // Changed to handle multiple images
+    pdf: '', // Added to handle PDF
     description: ''
   });
   const navigate = useNavigate();
@@ -81,6 +82,24 @@ const AddPackage = () => {
     };
   };
 
+  // Handling PDF file input and converting it to Base64
+  const handlePdfChange = (e) => {
+    const file = e.target.files[0]; // Get the selected file
+    setFileToBasePdf(file);
+  };
+
+  // Convert the PDF file to Base64 and set it in the state
+  const setFileToBasePdf = (file) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = () => {
+      setPackageData(prev => ({
+        ...prev,
+        pdf: reader.result // Set the Base64 PDF in the state
+      }));
+    };
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -107,6 +126,7 @@ const AddPackage = () => {
         basePrice: '',
         totalDistance: '',
         images: [],
+        pdf:'',
         description: ''
       });
       toast.success('Package created successfully!');
@@ -333,7 +353,28 @@ const AddPackage = () => {
                 </div>
               )}
             </Grid>
-
+            <Grid item xs={12}>
+              <Button
+                variant="contained"
+                component="label"
+              >
+                Upload PDF
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  hidden
+                  onChange={handlePdfChange}
+                />
+              </Button>
+              
+              {/* Check if there is a PDF and display its name */}
+              {packageData.pdf && (
+                <Typography variant="body2" style={{ marginTop: '10px' }}>
+                  PDF Uploaded
+                </Typography>
+              )}
+            </Grid>
+            
             <Grid item xs={12}>
               <Button
                 type="submit"

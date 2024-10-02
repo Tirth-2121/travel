@@ -1,24 +1,41 @@
-import { useState } from "react";
+import { useState ,useEffect} from "react";
 import { color, motion } from "framer-motion";
 import { Mail, Lock, Loader } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link ,useNavigate} from "react-router-dom";
 import Input from "../components/Input";
 import { useAuthStore } from "../store/authStore";
+import toast, { Toaster } from 'react-hot-toast';
 
 const LoginPage = () => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-
+	const navigate = useNavigate();
 	const { login, isLoading, error } = useAuthStore();
 
 	const handleLogin = async (e) => {
 		e.preventDefault();
-		await login(email, password);
-	};
+		try {
+			const user = await login(email, password);
+			console.log("this is user");
 
+			if (user && !user.isVerified) {
+				toast.error("Please verify your email.");
+				navigate("/verify-email");
+			}
+		} catch (error) {
+			console.error(error);
+		}
+	};
+	useEffect(() => {
+		if (error) {
+			toast.error(error);
+		}
+		
+	}, [error]);
 	return (
 		<div className="min-h-screen bg-gradient-to-br
     flex items-center justify-center relative overflow-hidden">
+			<Toaster />
 			<motion.div
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
@@ -52,7 +69,7 @@ const LoginPage = () => {
 							Forgot password?
 						</Link>
 					</div>
-					{error && <p className='text-red-500 font-semibold mb-2'>{error}</p>}
+					{/* {error && <p className='text-red-500 font-semibold mb-2'>{error}</p>} */}
 
 					<motion.button
 						whileHover={{ scale: 1.02 }}

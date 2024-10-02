@@ -1,4 +1,6 @@
 import express from "express";
+import multer from 'multer';
+
 import {
 	createPlace,
 	getPlaces,
@@ -22,6 +24,16 @@ import {
 	getUserBookings,
 	getAllUserPackage,
 	verifyPayment,
+	addToFavorites,
+	getFavorites,
+	removeFromFavorites,
+	addPhoto,
+	getPhotos,
+	removePhoto,
+	createContact,
+	getContacts,
+	deleteContact,
+	sendReply,
 } from "../controllers/adminController.js";
 // import {
 // 	createDestination,
@@ -95,4 +107,21 @@ router.get('/packages/:packageId/applied-users', verifyToken, verifyAdmin,getAll
 // router.post('/verify-payment', confirmBooking);
 router.post('/payment/verify', verifyToken,verifyPayment);
 
+
+// Favorite packages routes
+router.post('/users/:userId/favorites/:packageId', verifyToken, addToFavorites);
+router.get('/users/:userId/favorites', verifyToken, getFavorites);
+router.delete('/users/:userId/favorites/:packageId', verifyToken, removeFromFavorites);
+
+
+//gallery
+router.post('/gallery', verifyToken, verifyAdmin, addPhoto);
+router.get('/gallery',verifyToken, getPhotos);
+router.delete('/gallery/:id',verifyToken, verifyAdmin, removePhoto);
+
+//contact us
+router.post('/contact', createContact); // Allow both authenticated and unauthenticated users
+router.get('/contact', verifyToken, verifyAdmin, getContacts); // Only admin can retrieve contact messages
+router.delete('/contact/:id', verifyToken, verifyAdmin, deleteContact); // Only admin can delete contact messages
+router.post('/contact/:id/reply', verifyToken, verifyAdmin, sendReply); // Add this route for sending replies
 export default router;

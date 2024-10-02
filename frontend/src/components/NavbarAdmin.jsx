@@ -34,6 +34,8 @@ function NavbarAdmin() {
                         <Nav.Link onClick={() => handleNavigation('/transport')}>Transport</Nav.Link>
                         <Nav.Link onClick={() => handleNavigation('/package')}>Package</Nav.Link>
                         <Nav.Link onClick={() => handleNavigation('/admin-packages')}>Applied Package</Nav.Link>
+                        <Nav.Link onClick={() => handleNavigation('/admin-gallery')}>Gallery</Nav.Link>
+                        <Nav.Link onClick={() => handleNavigation('/admin-contact')}>Contact Us</Nav.Link>
                         <Nav.Link onClick={handleLogout}>Logout</Nav.Link>
                     </Nav>
                 </Container>

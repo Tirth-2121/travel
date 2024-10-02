@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAuthStore } from "../store/authStore";
 import { useNavigate, useParams } from "react-router-dom";
 import Input from "../components/Input";
 import { Lock } from "lucide-react";
-import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 
 const ResetPasswordPage = () => {
 	const [password, setPassword] = useState("");
@@ -18,7 +18,7 @@ const ResetPasswordPage = () => {
 		e.preventDefault();
 
 		if (password !== confirmPassword) {
-			alert("Passwords do not match");
+			toast.error("Passwords do not match");
 			return;
 		}
 		try {
@@ -33,10 +33,15 @@ const ResetPasswordPage = () => {
 			toast.error(error.message || "Error resetting password");
 		}
 	};
-
+	useEffect(() => {
+		if (error) {
+			toast.error(error);
+		}
+	}, [error]);
 	return (
 		<div className="min-h-screen bg-gradient-to-br
     flex items-center justify-center relative overflow-hidden">
+		<Toaster />
 		<motion.div
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
@@ -47,7 +52,7 @@ const ResetPasswordPage = () => {
 				<h2 className='text-3xl font-bold mb-6 text-center bg-gradient-to-r from-gray-900 to-gray-900 text-transparent bg-clip-text'>
 					Reset Password
 				</h2>
-				{error && <p className='text-red-500 text-sm mb-4'>{error}</p>}
+				{/* {error && <p className='text-red-500 text-sm mb-4'>{error}</p>} */}
 				{message && <p className='text-gray-100 text-sm mb-4'>{message}</p>}
 
 				<form onSubmit={handleSubmit}>

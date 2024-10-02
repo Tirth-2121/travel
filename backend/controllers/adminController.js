@@ -7,7 +7,9 @@ import { User } from '../models/user.model.js';
 import {Place} from '../models/Place.js';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
-import { sendPaymentConfirmationEmail } from '../mailtrap/emails.js';
+import { sendContactUsEmail, sendPaymentConfirmationEmail, sendReplyEmail } from '../mailtrap/emails.js';
+import { Photo } from '../models/Photo.js';
+import { Contact } from '../models/Contact.js';
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -228,9 +230,9 @@ export const addTransport = async (req, res) => {
         basePrice,
         totalDistance,
         images, // Add the image field
-        description 
+        description ,
+        pdf, // Add the pdf field
       } = req.body;
-  
       console.log(req.body);
   
       // Fetch related entities
@@ -259,14 +261,6 @@ export const addTransport = async (req, res) => {
     if (!images || images.length < 1 || images.length > 5) {
       return res.status(400).json({ message: "You must upload at least 1 image and a maximum of 5 images." });
     }
-
-      // Upload image to Cloudinary if provided
-      // let imageResult;
-      // if (image) {
-      //   imageResult = await cloudinary.uploader.upload(image, {
-      //     folder: 'packages', // Specify a folder in Cloudinary for packages
-      //   });
-      // }
       // Upload images to Cloudinary and collect the results
     const imageResults = [];
     for (const image of images) {
@@ -278,7 +272,16 @@ export const addTransport = async (req, res) => {
         url: imageResult.secure_url,
       });
     }
-  
+
+    // Upload PDF to Cloudinary
+    let pdfResult = null;
+    if (pdf) {
+      pdfResult = await cloudinary.uploader.upload(pdf, {
+        folder: 'packages', // Specify a folder in Cloudinary for packages
+        resource_type: 'raw' // Specify the resource type as raw for PDFs
+      });
+    }
+
       // Create a new package with the uploaded image
       const packages = new Package({
         name,
@@ -293,7 +296,8 @@ export const addTransport = async (req, res) => {
         totalPrice,
         nights,
         description ,
-        images: imageResults
+        images: imageResults,
+        pdf: pdfResult ? { public_id: pdfResult.public_id, url: pdfResult.secure_url } : null
       });
   
       await packages.save();
@@ -325,7 +329,8 @@ export const addTransport = async (req, res) => {
         totalDistance,
         newImages, // Array of image URLs or Base64 strings for new images
         imagesToRemove, // Array of public IDs of images to remove
-        description
+        description,
+        pdf, // New PDF to upload
       } = req.body;
   
       // Find the package by ID
@@ -401,6 +406,20 @@ export const addTransport = async (req, res) => {
         pkg.images = [...pkg.images, ...imageResults];
       }
   
+      // Handle uploading new PDF to Cloudinary
+    if (pdf) {
+      // Remove the existing PDF from Cloudinary if it exists
+      if (pkg.pdf && pkg.pdf.public_id) {
+        await cloudinary.uploader.destroy(pkg.pdf.public_id, { resource_type: 'raw' });
+      }
+      // Upload the new PDF
+      const pdfResult = await cloudinary.uploader.upload(pdf, {
+        folder: 'packages', // Specify a folder in Cloudinary for packages
+        resource_type: 'raw' // Specify the resource type as raw for PDFs
+      });
+      pkg.pdf = { public_id: pdfResult.public_id, url: pdfResult.secure_url };
+    }
+
       // Calculate the number of nights (ensure dates are valid)
       if (pkg.startDate && pkg.endDate && pkg.startDate <= pkg.endDate) {
         const start = new Date(pkg.startDate);
@@ -698,3 +717,172 @@ if (booking) {
     }
   };
   
+
+  //favorite packages
+export const addToFavorites = async (req, res) => {
+  const { userId, packageId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.favorites.includes(packageId)) {
+      user.favorites.push(packageId);
+      await user.save();
+    }
+
+    res.status(200).json({ message: 'Package added to favorites' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const getFavorites = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId).populate('favorites');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json(user.favorites);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const removeFromFavorites = async (req, res) => {
+  const { userId, packageId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.favorites = user.favorites.filter(fav => fav.toString() !== packageId);
+    await user.save();
+
+    res.status(200).json({ message: 'Package removed from favorites' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+//gallery
+export const addPhoto = async (req, res) => {
+  const {image} = req.body;
+  // console.log(req.body)
+  try {
+    if (!image) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+    const imageResult = await cloudinary.uploader.upload(image, {
+      folder: 'packages', // Specify a folder in Cloudinary for packages
+    });
+  
+    // Create a new photo with the uploaded image details
+    const photo = new Photo({
+      image: imageResult
+          ? { public_id: imageResult.public_id, url: imageResult.secure_url }
+          : null, // Store Cloudinary image details, if available
+    });
+    const savedPhoto = await photo.save();
+    res.status(201).json(savedPhoto);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const removePhoto = async (req, res) => {
+  try {
+    const photo = await Photo.findByIdAndDelete(req.params.id);
+    console.log(photo)
+    if (!photo) {
+      return res.status(404).json({ message: 'Photo not found' });
+    }
+
+    // Delete image from Cloudinary
+    await cloudinary.uploader.destroy(photo.image.public_id);
+    res.status(200).json({ message: 'Photo removed' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const getPhotos = async (req, res) => {
+  try {
+    const photos = await Photo.find();
+    res.status(200).json(photos);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+
+// contact us
+
+export const createContact = async (req, res) => {
+  try {
+    const { name, email, description } = req.body;
+    const userId = req.user ? req.user._id : null; // Check if user is logged in
+
+    const contact = new Contact({
+      name,
+      email,
+      description,
+      user: userId
+    });
+
+    await contact.save();
+    await sendContactUsEmail(email, name);
+    res.status(201).json({ message: 'Message sent successfully' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const getContacts = async (req, res) => {
+  try {
+    const contacts = await Contact.find().populate('user', 'name email');
+    res.status(200).json(contacts);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+export const deleteContact = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Contact.findByIdAndDelete(id);
+    res.status(200).json({ message: 'Contact message deleted successfully' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const sendReply = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { subject, message } = req.body;
+
+    // Find the contact message by ID
+    const contact = await Contact.findById(id);
+    if (!contact) {
+      return res.status(404).json({ message: 'Contact message not found' });
+    }
+    console.log(contact)
+    // Send the reply email
+    await sendReplyEmail(contact.email, subject, message);
+
+    // Update the status to completed
+    contact.status = 'completed';
+    await contact.save();
+
+    res.status(200).json({ message: 'Reply sent successfully and status updated to completed' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
