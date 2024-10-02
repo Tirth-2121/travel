@@ -2,6 +2,9 @@ import {
 	PASSWORD_RESET_REQUEST_TEMPLATE,
 	PASSWORD_RESET_SUCCESS_TEMPLATE,
 	VERIFICATION_EMAIL_TEMPLATE,
+    REPLY_EMAIL_TEMPLATE,
+    SEND_CONTACT_US_EMAIL_TEMPLATE,
+    PAYMENT_CONFIRMATION_EMAIL_TEMPLATE
 } from "./emailTemplates.js";
 import { transporter, sender } from "./mailtrap.config.js";
 
@@ -79,14 +82,7 @@ export const sendPaymentConfirmationEmail = async (email, packageName, totalCost
         from: `"${sender.name}" <${sender.email}>`,
         to: email,
         subject: "Payment Confirmation",
-        html: `
-            <p>Dear Customer,</p>
-            <p>Thank you for your payment. Your booking for the package "${packageName}" has been confirmed.</p>
-            <p>Total Cost: ₹${totalCost}</p>
-            <p>We look forward to serving you.</p>
-            <p>Best regards,</p>
-            <p>The Travel Company Team</p>
-        `,
+        html: PAYMENT_CONFIRMATION_EMAIL_TEMPLATE.replace("{packageName}", packageName).replace("{totalCost}", totalCost),
     };
 
     try {
@@ -103,7 +99,7 @@ export const sendContactUsEmail = async (email, name) => {
         from: `"${sender.name}" <${sender.email}>`,
         to: email,
         subject: "Contact Form Submission",
-        html: `<p>Thank you for contacting us, ${name}. We have received your message and will get back to you shortly.</p>`,
+        html: SEND_CONTACT_US_EMAIL_TEMPLATE.replace("{name}", name),
     };
 
     try {
@@ -119,7 +115,7 @@ export const sendReplyEmail = async (to, subject, message) => {
       from: `"${sender.name}" <${sender.email}>`,
       to,
       subject,
-      text: message,
+      html: REPLY_EMAIL_TEMPLATE.replace("{message}", message),
     };
   
     await transporter.sendMail(mailOptions);

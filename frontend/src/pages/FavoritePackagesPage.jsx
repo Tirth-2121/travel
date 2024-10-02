@@ -16,6 +16,7 @@ const FavoritePackagesPage = () => {
   };
   const navigate = useNavigate();
   const [favorites, setFavorites] = useState([]);
+  const [appliedPackages, setAppliedPackages] = useState([]); // State to store applied packages
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -28,6 +29,19 @@ const FavoritePackagesPage = () => {
     };
 
     fetchFavorites();
+  }, [userId, config]);
+
+  useEffect(() => {
+    const fetchAppliedPackages = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/admin/user/${userId}/bookings`, config);
+        setAppliedPackages(response.data);
+      } catch (err) {
+        console.error('Failed to fetch applied packages', err);
+      }
+    };
+
+    fetchAppliedPackages();
   }, [userId, config]);
 
   const handleRemoveFavorite = async (pkgId) => {
@@ -78,7 +92,7 @@ const FavoritePackagesPage = () => {
                     {pkg.name || 'Unknown'}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    <strong>Source:</strong> {pkg.source?.name || 'Unknown'}
+                    <strong>Source:</strong> {pkg.source.name || 'Unknown'}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     <strong>Destination:</strong> {pkg.destination?.name || 'Unknown'}
@@ -99,15 +113,21 @@ const FavoritePackagesPage = () => {
               </CardContent>
               <Divider />
               <CardActions>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => handleApply(pkg)}
-                  disabled={isApplyButtonDisabled(pkg.startDate)}
-                  sx={{ flexGrow: 1 }}
-                >
-                  {isApplyButtonDisabled(pkg.startDate) ? 'Registration Closed' : 'Apply'}
-                </Button>
+                {appliedPackages.some(appliedPkg => appliedPkg.package._id === pkg._id) ? (
+                  <Button variant="contained" color="secondary" disabled sx={{ flexGrow: 1 }}>
+                    Already Applied
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => handleApply(pkg)}
+                    disabled={isApplyButtonDisabled(pkg.startDate)}
+                    sx={{ flexGrow: 1 }}
+                  >
+                    {isApplyButtonDisabled(pkg.startDate) ? 'Registration Closed' : 'Apply'}
+                  </Button>
+                )}
                 <IconButton onClick={() => handleRemoveFavorite(pkg._id)}>
                   <Favorite sx={{ color: 'red' }} />
                 </IconButton>

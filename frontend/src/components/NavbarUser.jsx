@@ -21,7 +21,7 @@ function NavbarUser() {
     };
 
     const handleNavigation = (path) => {
-        navigate(path);
+        window.location.href = path; // Use window.location.href to force a page reload
     };
 
     return (

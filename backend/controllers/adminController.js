@@ -383,7 +383,7 @@ export const addTransport = async (req, res) => {
   
       // Validate the number of images
       const totalImages = pkg.images.length + (newImages ? newImages.length : 0) - (imagesToRemove ? imagesToRemove.length : 0);
-      if (totalImages < 1) {
+      if (totalImages == 0) {
         return res.status(400).json({ message: 'A package must have at least one image.' });
       }
       if (totalImages > 5) {
@@ -743,8 +743,13 @@ export const getFavorites = async (req, res) => {
   const { userId } = req.params;
 
   try {
-    const user = await User.findById(userId).populate('favorites');
-    if (!user) {
+    const user = await User.findById(userId).populate({
+      path: 'favorites',
+      populate: [
+        { path: 'source', select: 'name' },      // Populate the 'source' field and select the 'name' field
+        { path: 'destination', select: 'name' }  // Populate the 'destination' field and select the 'name' field
+      ]
+    });    if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
