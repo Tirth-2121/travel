@@ -4,7 +4,8 @@ import {
 	VERIFICATION_EMAIL_TEMPLATE,
     REPLY_EMAIL_TEMPLATE,
     SEND_CONTACT_US_EMAIL_TEMPLATE,
-    PAYMENT_CONFIRMATION_EMAIL_TEMPLATE
+    PAYMENT_CONFIRMATION_EMAIL_TEMPLATE,
+    WELCOME_EMAIL_TEMPLATE
 } from "./emailTemplates.js";
 import { transporter, sender } from "./mailtrap.config.js";
 
@@ -31,7 +32,7 @@ export const sendWelcomeEmail = async (email, name) => {
         from: `"${sender.name}" <${sender.email}>`,
         to: email,
         subject: "Welcome to Travel Company",
-        html: `<p>Welcome, ${name}! Thanks for joining Travel Company.</p>`,
+        html: WELCOME_EMAIL_TEMPLATE.replace("{name}", name),
     };
 
     try {
