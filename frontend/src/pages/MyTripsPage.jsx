@@ -9,6 +9,8 @@ import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid'; // To arrange cards in a grid layout
+import { Loader } from 'lucide-react';
+import LoadingSpinner from '../components/LoadingSpinner'
 
 const MyTripsPage = () => {
   const token = localStorage.getItem('token');  // Retrieve token from localStorage
@@ -38,7 +40,7 @@ const MyTripsPage = () => {
   }, [user]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div><LoadingSpinner/></div>;
   }
 
   if (error) {
@@ -74,9 +76,9 @@ const MyTripsPage = () => {
                       Number of People: {booking.people?.length || 'Unknown'}
                     </Typography>
                   </CardContent>
-                  <CardActions>
+                  {/* <CardActions>
                     <Button size="small" onClick={() => handleBookingDetails(booking._id)}>View Details</Button>
-                  </CardActions>
+                  </CardActions> */}
                 </Card>
               </Grid>
             ))}

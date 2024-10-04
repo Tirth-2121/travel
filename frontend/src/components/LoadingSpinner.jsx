@@ -1,14 +1,32 @@
 import { motion } from "framer-motion";
+import { FaPlane } from "react-icons/fa"; // Importing an airplane icon
 
 const LoadingSpinner = () => {
 	return (
-		<div className='min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-emerald-900 flex items-center justify-center relative overflow-hidden'>
-			{/* Simple Loading Spinner */}
+		<div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+			{/* Loading Spinner with Airplane Icon */}
 			<motion.div
-				className='w-16 h-16 border-4 border-t-4 border-t-green-500 border-green-200 rounded-full'
-				animate={{ rotate: 360 }}
-				transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-			/>
+				className="flex flex-col items-center"
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ duration: 0.5 }}
+			>
+				<motion.div
+					className="text-gray-800 text-6xl" // You can adjust the color here if needed
+					animate={{ rotate: 360 }}
+					transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+				>
+					<FaPlane />
+				</motion.div>
+				<motion.p
+					className="text-gray-800 text-lg mt-4" // You can adjust the color here if needed
+					initial={{ y: -20 }}
+					animate={{ y: 0 }}
+					transition={{ duration: 0.5, delay: 0.5 }}
+				>
+					Loading your travel experience...
+				</motion.p>
+			</motion.div>
 		</div>
 	);
 };

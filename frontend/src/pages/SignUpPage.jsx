@@ -1,101 +1,149 @@
 import { motion } from "framer-motion";
-import Input from "../components/Input";
+import Input from "../components/Input"; // You might need to modify this if you're not using MUI for inputs.
 import { Loader, Lock, Mail, User } from "lucide-react";
-import { useState , useEffect} from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
 import { useAuthStore } from "../store/authStore";
 import toast, { Toaster } from "react-hot-toast";
+import {
+  Box,
+  Button,
+  Container,
+  Grid,
+  Typography,
+  TextField,
+} from "@mui/material";
 
 const SignUpPage = () => {
-	const [name, setName] = useState("");
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-	const { signup, error, isLoading } = useAuthStore();
+  const { signup, error, isLoading } = useAuthStore();
 
-	const handleSignUp = async (e) => {
-		e.preventDefault();
+  const handleSignUp = async (e) => {
+    e.preventDefault();
 
-		try {
-			const role = "user"
-			await signup(email, password, name,role);
-			toast.success("Account created successfully! Please verify your email.");
-			navigate("/verify-email");
-		} catch (error) {
-			console.log(error);
-			// toast.error(error.message || "Error signing up");
-		}
-	};
-	useEffect(() => {
-		if (error) {
-			toast.error(error);
-		}
-	}, [error]);
-	return (
-		<div className="min-h-screen bg-gradient-to-br
-    flex items-center justify-center relative overflow-hidden">
-			<Toaster />
-			<motion.div
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.5 }}
-			className='max-w-md w-full bg-gray-500 bg-opacity-50 backdrop-filter backdrop-blur-xl rounded-2xl shadow-xl 
-			overflow-hidden'
-		>
-			<div className='p-8'>
-				<h2 className='text-3xl font-bold mb-6 text-center bg-gradient-to-r from-gray-900 to-gray-900 text-transparent bg-clip-text'>
-					Create Account
-				</h2>
+    try {
+      const role = "user";
+      await signup(email, password, name, role);
+      toast.success("Account created successfully! Please verify your email.");
+      navigate("/verify-email");
+    } catch (error) {
+      console.log(error);
+      // toast.error(error.message || "Error signing up");
+    }
+  };
 
-				<form onSubmit={handleSignUp}>
-					<Input
-						icon={User}
-						type='text'
-						placeholder='Full Name'
-						value={name}
-						onChange={(e) => setName(e.target.value)}
-					/>
-					<Input
-						icon={Mail}
-						type='email'
-						placeholder='Email Address'
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-					/>
-					<Input
-						icon={Lock}
-						type='password'
-						placeholder='Password'
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-					/>
-					{/* {error && <p className='text-red-500 font-semibold mt-2'>{error}</p>} */}
-					<PasswordStrengthMeter password={password} />
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
-					<motion.button
-						className='w-full py-3 px-4 bg-gradient-to-r from-gray-900 to-gray-900 text-white font-bold rounded-lg shadow-lg hover:from-gray-800 hover:to-gray-800  transition duration-200'
-						whileHover={{ scale: 1.02 }}
-						whileTap={{ scale: 0.98 }}
-						type='submit'
-						disabled={isLoading}
-					>
-						{isLoading ? <Loader className=' animate-spin mx-auto' size={24} /> : "Sign Up"}
-					</motion.button>
-				</form>
-			</div>
-			<div className='px-8 py-4 bg-gray-900 bg-opacity-50 flex justify-center'>
-				<p className='text-sm text-red-400'>
-					Already have an account?{" "}
-					<Link to={"/login"} className='text-gray-100 hover:underline'>
-						Login
-					</Link>
-				</p>
-			</div>
-		</motion.div>
-		</div>
-		
-	);
+  return (
+    <Container component="main" maxWidth="xs">
+      <Toaster />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            bgcolor: "background.paper",
+            borderRadius: 2,
+            boxShadow: 3,
+            p: 4,
+            backdropFilter: "blur(10px)",
+            backgroundColor: "rgba(255, 255, 255, 0.8)",
+			marginTop:"10px"
+          }}
+        >
+          <Typography component="h1" variant="h4" gutterBottom>
+            Create Account
+          </Typography>
+
+          <form onSubmit={handleSignUp}>
+            <TextField
+              variant="outlined"
+              margin="normal"
+              fullWidth
+              required
+              label="Full Name"
+              InputProps={{
+                startAdornment: (
+                  <User style={{ marginRight: "8px", color: "#888" }} />
+                ),
+              }}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+			  sx={{ height: '40px', '& .MuiInputBase-input': { padding: '10px' } }}
+            />
+            <TextField
+              variant="outlined"
+              margin="normal"
+              fullWidth
+              required
+              label="Email Address"
+              InputProps={{
+                startAdornment: (
+                  <Mail style={{ marginRight: "8px", color: "#888" }} />
+                ),
+              }}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+			  sx={{ height: '40px', '& .MuiInputBase-input': { padding: '10px' } }}
+            />
+            <TextField
+              variant="outlined"
+              margin="normal"
+              fullWidth
+              required
+              label="Password"
+              type="password"
+              InputProps={{
+                startAdornment: (
+                  <Lock style={{ marginRight: "8px", color: "#888" }} />
+                ),
+              }}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+			  sx={{ height: '40px', '& .MuiInputBase-input': { padding: '10px' } }}
+            />
+            <PasswordStrengthMeter password={password} />
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              color="primary"
+              sx={{ mt: 3, mb: 2 }}
+              disabled={isLoading}
+            >
+              {isLoading ? <Loader className="animate-spin mx-auto" size={24} /> : "Sign Up"}
+            </Button>
+          </form>
+
+          <Grid container>
+            <Grid item>
+              <Typography variant="body2">
+                Already have an account?{" "}
+                <Link to="/login" style={{ color: '#1976d2', textDecoration: 'none' }}>
+                  Login
+                </Link>
+              </Typography>
+            </Grid>
+          </Grid>
+        </Box>
+      </motion.div>
+    </Container>
+  );
 };
+
 export default SignUpPage;

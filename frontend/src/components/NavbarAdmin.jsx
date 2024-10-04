@@ -1,6 +1,5 @@
-import Container from 'react-bootstrap/Container';
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
+import React from 'react';
+import { AppBar, Toolbar, Typography, Button } from '@mui/material';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 
@@ -23,24 +22,21 @@ function NavbarAdmin() {
     };
 
     return (
-        <>
-            <Navbar bg="dark" data-bs-theme="dark">
-                <Container>
-                    <Navbar.Brand onClick={() => handleNavigation('/admin-dashboard')} style={{cursor: 'pointer'}}>Travel</Navbar.Brand>
-                    <Nav className="me-auto">
-                        <Nav.Link onClick={() => handleNavigation('/destination')}>Place</Nav.Link>
-                        {/* <Nav.Link onClick={() => handleNavigation('/source')}>Source</Nav.Link> */}
-                        <Nav.Link onClick={() => handleNavigation('/hotel')}>Hotel</Nav.Link>
-                        <Nav.Link onClick={() => handleNavigation('/transport')}>Transport</Nav.Link>
-                        <Nav.Link onClick={() => handleNavigation('/package')}>Package</Nav.Link>
-                        <Nav.Link onClick={() => handleNavigation('/admin-packages')}>Applied Package</Nav.Link>
-                        <Nav.Link onClick={() => handleNavigation('/admin-gallery')}>Gallery</Nav.Link>
-                        <Nav.Link onClick={() => handleNavigation('/admin-contact')}>Contact Us</Nav.Link>
-                        <Nav.Link onClick={handleLogout}>Logout</Nav.Link>
-                    </Nav>
-                </Container>
-            </Navbar>
-        </>
+        <AppBar position="static" sx={{ backgroundColor: '#1976D2' }}> {/* Change color here */}
+            <Toolbar>
+                <Typography variant="h6" onClick={() => handleNavigation('/admin-dashboard')} sx={{ cursor: 'pointer', flexGrow: 1 }}>
+                    Travel
+                </Typography>
+                <Button color="inherit" onClick={() => handleNavigation('/destination')}>Place</Button>
+                <Button color="inherit" onClick={() => handleNavigation('/hotel')}>Hotel</Button>
+                <Button color="inherit" onClick={() => handleNavigation('/transport')}>Transport</Button>
+                <Button color="inherit" onClick={() => handleNavigation('/package')}>Package</Button>
+                <Button color="inherit" onClick={() => handleNavigation('/admin-packages')}>Applied Package</Button>
+                <Button color="inherit" onClick={() => handleNavigation('/admin-gallery')}>Gallery</Button>
+                <Button color="inherit" onClick={() => handleNavigation('/admin-contact')}>Contact Us</Button>
+                <Button color="inherit" onClick={handleLogout}>Logout</Button>
+            </Toolbar>
+        </AppBar>
     );
 }
 

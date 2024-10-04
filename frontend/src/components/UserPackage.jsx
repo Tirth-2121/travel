@@ -6,9 +6,9 @@ import NavbarAdmin from './NavbarAdmin';
 const UserPackage = () => {
     const token = localStorage.getItem('token');  // Retrieve token from localStorage
     const config = {
-      headers: {
-        Authorization: `Bearer ${token}` // Send token in Authorization header
-      }
+        headers: {
+            Authorization: `Bearer ${token}` // Send token in Authorization header
+        }
     };
     const { packageId } = useParams();
     const [packageDetails, setPackageDetails] = useState(null);
@@ -58,27 +58,28 @@ const UserPackage = () => {
                     {appliedUsers.length === 0 ? (
                         <p>No users have applied for this package.</p>
                     ) : (
-                        <ul style={styles.userList}>
+                        <div style={styles.userList}>
                             {appliedUsers.map((user, index) => (
-                                <li key={user._id} style={styles.userItem}>
-                                    <div><strong>User {index + 1}:</strong></div>
-                                    <div><strong>Name:</strong> {user.name || 'Unknown'}</div>
-                                    <div><strong>Mobile Number:</strong> {user.mobileNumber || 'Unknown'}</div>
-                                    <div><strong>Age(s):</strong> {user.age || 'Unknown'}</div>
-                                    <div><strong>Email:</strong> {user.email || 'Unknown'}</div>
-                                    <div><strong>Payment Status:</strong> {user.paymentStatus || 'Unknown'}</div>
-                                    {user.paymentStatus === 'failed' || user.paymentStatus === 'pending' ? (
-                                        <button 
-                                            style={styles.callButton}
-                                            onClick={() => handleCallUser(user.mobileNumber)}
-                                        >
-                                            Call User
-                                        </button>
-                                    ) : null}
-                                    <hr />
-                                </li>
+                                <div key={user._id} style={styles.userCard}>
+                                    <div style={styles.userContent}>
+                                        <div><strong>User {index + 1}:</strong></div>
+                                        <div><strong>Name:</strong> {user.name || 'Unknown'}</div>
+                                        <div><strong>Mobile Number:</strong> {user.mobileNumber || 'Unknown'}</div>
+                                        <div><strong>Age(s):</strong> {user.age || 'Unknown'}</div>
+                                        <div><strong>Email:</strong> {user.email || 'Unknown'}</div>
+                                        <div><strong>Payment Status:</strong> {user.paymentStatus || 'Unknown'}</div>
+                                        {user.paymentStatus === 'failed' || user.paymentStatus === 'pending' ? (
+                                            <button 
+                                                style={styles.callButton}
+                                                onClick={() => handleCallUser(user.mobileNumber)}
+                                            >
+                                                Call User
+                                            </button>
+                                        ) : null}
+                                    </div>
+                                </div>
                             ))}
-                        </ul>
+                        </div>
                     )}
                 </div>
             </div>
@@ -100,22 +101,27 @@ const styles = {
     packageDetails: {
         marginBottom: '20px',
     },
-    image: {
-        width: '100%',
-        height: 'auto',
-        objectFit: 'cover',
-        borderRadius: '8px',
-        marginBottom: '10px',
-    },
     userContainer: {
         marginTop: '20px',
     },
     userList: {
-        listStyleType: 'none',
-        padding: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
     },
-    userItem: {
-        marginBottom: '10px',
+    userCard: {
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: '#f9f9f9',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        padding: '15px',
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    },
+    userContent: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '5px',
     },
     callButton: {
         marginTop: '10px',

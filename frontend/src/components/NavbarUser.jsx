@@ -1,7 +1,11 @@
-import Container from 'react-bootstrap/Container';
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
-import Dropdown from 'react-bootstrap/Dropdown';
+import React from 'react';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import IconButton from '@mui/material/IconButton';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
@@ -9,45 +13,53 @@ import { FaUserCircle } from 'react-icons/fa';
 function NavbarUser() {
     const { logout } = useAuthStore();
     const navigate = useNavigate();
-
+    
+    const [anchorEl, setAnchorEl] = React.useState(null);
+    
     const handleLogout = () => {
-        // Clear localStorage and logout the user
         localStorage.removeItem('user');
         localStorage.removeItem('token');
         logout();
-    
-        // Redirect to the login page and force a page reload
         window.location.href = '/';
     };
 
     const handleNavigation = (path) => {
-        window.location.href = path; // Use window.location.href to force a page reload
+        navigate(path);
+    };
+
+    const handleMenuOpen = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuClose = () => {
+        setAnchorEl(null);
     };
 
     return (
-        <>
-            <Navbar bg="dark" data-bs-theme="dark">
-                <Container>
-                    <Navbar.Brand onClick={() => handleNavigation('/')} style={{cursor: 'pointer'}}>Travel</Navbar.Brand>
-                    <Nav className="me-auto">
-                        <Nav.Link onClick={() => handleNavigation('/my-trips')}>My Trip</Nav.Link>
-                        <Nav.Link onClick={() => handleNavigation('/favorite-packages')}>Favorite</Nav.Link>
-                        <Nav.Link onClick={() => handleNavigation('/gallery')}>Gallery</Nav.Link>
-                        <Nav.Link onClick={() => handleNavigation('/contact-us')}>Contact Us</Nav.Link>
-                    </Nav>
-                    <Dropdown align="end">
-                        <Dropdown.Toggle variant="secondary" id="dropdown-basic">
-                            Profile
-                        </Dropdown.Toggle>
-
-                        <Dropdown.Menu>
-                            <Dropdown.Item onClick={() => handleNavigation('/profile')}>My Profile</Dropdown.Item>
-                            <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>
-                        </Dropdown.Menu>
-                    </Dropdown>
-                </Container>
-            </Navbar>
-        </>
+        <AppBar position="static" color="primary">
+            <Toolbar>
+                <Typography variant="h6" onClick={() => handleNavigation('/')} style={{ cursor: 'pointer', flexGrow: 1 }}>
+                    Travel
+                </Typography>
+                <Button color="inherit" onClick={() => handleNavigation('/my-trips')}>My Trip</Button>
+                <Button color="inherit" onClick={() => handleNavigation('/favorite-packages')}>Favorite</Button>
+                <Button color="inherit" onClick={() => handleNavigation('/gallery')}>Gallery</Button>
+                <Button color="inherit" onClick={() => handleNavigation('/contact-us')}>Contact Us</Button>
+                
+                <IconButton color="inherit" onClick={handleMenuOpen}>
+                    <FaUserCircle />
+                </IconButton>
+                
+                <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={handleMenuClose}
+                >
+                    <MenuItem onClick={() => { handleNavigation('/profile'); handleMenuClose(); }}>My Profile</MenuItem>
+                    <MenuItem onClick={() => { handleLogout(); handleMenuClose(); }}>Logout</MenuItem>
+                </Menu>
+            </Toolbar>
+        </AppBar>
     );
 }
 

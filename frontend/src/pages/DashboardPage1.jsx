@@ -3,8 +3,20 @@ import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
 import NavbarUser from '../components/NavbarUser';
-import { Card, CardMedia, CardContent, Typography, Button, Stack, Divider, IconButton, CardActions, TextField } from '@mui/material';
+import {
+  Card,
+  CardMedia,
+  CardContent,
+  Typography,
+  Button,
+  Stack,
+  Divider,
+  IconButton,
+  CardActions,
+  TextField,
+} from '@mui/material';
 import { Favorite, FavoriteBorder } from '@mui/icons-material';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const DashboardPage1 = () => {
   const token = localStorage.getItem('token');  // Retrieve token from localStorage
@@ -69,11 +81,9 @@ const DashboardPage1 = () => {
   const handleFavoriteToggle = async (pkg) => {
     try {
       if (favorites.some(fav => fav._id === pkg._id)) {
-        // console.log(`Removing package ${pkg._id} from favorites`);
         await axios.delete(`http://localhost:5000/api/admin/users/${userId}/favorites/${pkg._id}`, config);
         setFavorites(favorites.filter(fav => fav._id !== pkg._id));
       } else {
-        // console.log(`Adding package ${pkg._id} to favorites`);
         await axios.post(`http://localhost:5000/api/admin/users/${userId}/favorites/${pkg._id}`, {}, config);
         setFavorites([...favorites, pkg]);
       }
@@ -83,7 +93,7 @@ const DashboardPage1 = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div><LoadingSpinner/></div>;
   }
 
   if (error) {
@@ -121,18 +131,18 @@ const DashboardPage1 = () => {
       </div>
       <div style={styles.gridContainer}>
         {filteredPackages.map((pkg, index) => (
-          <Card key={index} sx={{ maxWidth: 345, margin: '20px', borderRadius: '12px', boxShadow: 3 }}>
+          <Card key={index} sx={styles.card}>
             {pkg.images && (
               <CardMedia
                 component="img"
-                height="140"
+                height="180"
                 image={pkg.images[0]?.url || '/placeholder.svg'}
                 alt={pkg.name || 'Unknown'}
-                style={{ borderRadius: '12px 12px 0 0' }}
+                style={styles.cardMedia}
               />
             )}
             <CardContent>
-              <Stack spacing={3}>
+              <Stack spacing={2}>
                 <Typography gutterBottom variant="h5" component="div">
                   {pkg.name || 'Unknown'}
                 </Typography>
@@ -151,14 +161,14 @@ const DashboardPage1 = () => {
                 <Typography variant="body2" color="text.secondary">
                   <strong>Nights:</strong> {pkg.nights || 'Unknown'}
                 </Typography>
-                <Typography variant="h6" color="blue.600">
+                <Typography variant="h6" color="blue.600" sx={{ fontWeight: 'bold' }}>
                   ₹{pkg.totalPrice || 'Unknown'}
                 </Typography>
               </Stack>
             </CardContent>
             <Divider />
-            <CardActions>
-            {appliedPackages.some(appliedPkg => appliedPkg.package._id === pkg._id) ? (
+            <CardActions sx={styles.cardActions}>
+              {appliedPackages.some(appliedPkg => appliedPkg.package._id === pkg._id) ? (
                 <Button variant="contained" color="secondary" disabled sx={{ flexGrow: 1 }}>
                   Already Applied
                 </Button>
@@ -200,6 +210,20 @@ const styles = {
     gap: '20px',
     padding: '20px',
     justifyContent: 'center',
+  },
+  card: {
+    borderRadius: '12px',
+    boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
+    transition: 'transform 0.2s',
+    '&:hover': {
+      transform: 'scale(1.05)',
+    },
+  },
+  cardMedia: {
+    borderRadius: '12px 12px 0 0',
+  },
+  cardActions: {
+    justifyContent: 'space-between',
   },
 };
 

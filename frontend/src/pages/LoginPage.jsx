@@ -1,97 +1,123 @@
-import { useState ,useEffect} from "react";
-import { color, motion } from "framer-motion";
+import { useState, useEffect } from "react";
 import { Mail, Lock, Loader } from "lucide-react";
-import { Link ,useNavigate} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Input from "../components/Input";
 import { useAuthStore } from "../store/authStore";
-import toast, { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from "react-hot-toast";
+import { Button, Typography, TextField, Box, CircularProgress, Paper } from "@mui/material";
+import { motion } from "framer-motion";
 
 const LoginPage = () => {
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
-	const navigate = useNavigate();
-	const { login, isLoading, error } = useAuthStore();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const { login, isLoading, error } = useAuthStore();
 
-	const handleLogin = async (e) => {
-		e.preventDefault();
-		try {
-			const user = await login(email, password);
-			console.log("this is user");
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const user = await login(email, password);
+      if (user && !user.isVerified) {
+        toast.error("Please verify your email.");
+        navigate("/verify-email");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-			if (user && !user.isVerified) {
-				toast.error("Please verify your email.");
-				navigate("/verify-email");
-			}
-		} catch (error) {
-			console.error(error);
-		}
-	};
-	useEffect(() => {
-		if (error) {
-			toast.error(error);
-		}
-		
-	}, [error]);
-	return (
-		<div className="min-h-screen bg-gradient-to-br
-    flex items-center justify-center relative overflow-hidden">
-			<Toaster />
-			<motion.div
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.5 }}
-			className='max-w-md w-full bg-gray-500 bg-opacity-50 backdrop-filter rounded-2xl shadow-xl overflow-hidden'
-		>
-			<div className='p-8'>
-				<h2 className='text-3xl font-bold mb-6 text-center bg-gradient-to-r from-gray-900 bg-clip-text'>
-					Welcome Back
-				</h2>
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
-				<form onSubmit={handleLogin}>
-					<Input 
-						icon={Mail}
-						type='email'
-						placeholder='Email Address'
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-					/>
+  return (
+    <Box
+      minHeight="100vh"
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      sx={{
+        background: "linear-gradient(135deg, #ece9e6, #ffffff)",
+      }}
+    >
+      <Toaster />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Paper elevation={10} sx={{ padding: 4, borderRadius: "16px", maxWidth: 400,width:"600px" }}>
+          <Typography variant="h4" align="center" gutterBottom>
+            Welcome Back
+          </Typography>
+          <form onSubmit={handleLogin}>
+            <Box mb={3} mt={2}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                label="Email Address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                InputProps={{
+                  startAdornment: <Mail style={{ marginRight: 8 }} />,
+                }}
+				sx={{ height: '40px', '& .MuiInputBase-input': { padding: '10px' } }}
+              />
+            </Box>
 
-					<Input
-						icon={Lock}
-						type='password'
-						placeholder='Password'
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-					/>
+            <Box mb={2}>
+              <TextField
+                fullWidth
+                variant="outlined"
+                label="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                InputProps={{
+                  startAdornment: <Lock style={{ marginRight: 8 }} />,
+                }}
+				sx={{ height: '40px', '& .MuiInputBase-input': { padding: '10px' } }}
+              />
+            </Box>
 
-					<div className='flex items-center mb-6'>
-						<Link to='/forgot-password' className='text-sm text-gray-900 hover:underline'>
-							Forgot password?
-						</Link>
-					</div>
-					{/* {error && <p className='text-red-500 font-semibold mb-2'>{error}</p>} */}
+            <Box display="flex" justifyContent="flex-end" mb={2}>
+              <Link to="/forgot-password" style={{ textDecoration: "none" }}>
+                <Typography variant="body2" color="primary">
+                  Forgot password?
+                </Typography>
+              </Link>
+            </Box>
 
-					<motion.button
-						whileHover={{ scale: 1.02 }}
-						whileTap={{ scale: 0.98 }}
-						className='w-full py-3 px-4 bg-gradient-to-r from-gray-900 to-gray-900 text-white font-bold rounded-lg shadow-lg hover:from-gray-800 hover:to-gray-800  transition duration-200'
-						type='submit'
-						disabled={isLoading}
-					>
-						{isLoading ? <Loader className='w-6 h-6 animate-spin  mx-auto' /> : "Login"}
-					</motion.button>
-				</form>
-			</div>
-			<div className='px-8 py-4 bg-gray-900 bg-opacity-50 flex justify-center'>
-				<p className='text-sm text-red-400'>
-					Don't have an account?{" "}
-					<Link to='/signup' className='text-gray-100 hover:underline'>
-						Sign up
-					</Link>
-				</p>
-			</div>
-		</motion.div>
-		</div>
-	);
+            <Button
+              fullWidth
+              type="submit"
+              variant="contained"
+              color="primary"
+              disabled={isLoading}
+              sx={{ paddingY: 1.5 }}
+              component={motion.button}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {isLoading ? <CircularProgress size={24} /> : "Login"}
+            </Button>
+          </form>
+          <Box mt={3} textAlign="center">
+            <Typography variant="body2">
+              Don't have an account?{" "}
+              <Link to="/signup" style={{ textDecoration: "none" }}>
+                <Typography component="span" color="primary">
+                  Sign up
+                </Typography>
+              </Link>
+            </Typography>
+          </Box>
+        </Paper>
+      </motion.div>
+    </Box>
+  );
 };
+
 export default LoginPage;
